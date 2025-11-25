@@ -4,6 +4,9 @@
 
 set -euo pipefail
 
+# Auto-update depuis GitLab
+(cd ~/bin && git pull -q) &
+
 # Determine the actual location of the scripts
 # If this script is a symlink, resolve to the actual location
 if [ -L "${BASH_SOURCE[0]}" ]; then
