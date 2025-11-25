@@ -36,15 +36,18 @@ This is a modern replacement and enhancement of the older `creation-vm-multipass
 
 Follow these 4 phases in order. Each has detailed documentation:
 
-### Phase 1: Initial Ubuntu VirtualBox Setup
-**Duration**: ~20 minutes
+### Phase 1: Initial Ubuntu VirtualBox Setup + Shell Configuration
+**Duration**: ~25 minutes
 **Guide**: [FIRST-STEPS.md](./FIRST-STEPS.md)
 
-- Create VirtualBox VM and install Ubuntu
-- Configure AZERTY French keyboard (3 methods)
-- Update system packages
-- Clone this repository
-- Verify scripts are executable
+Set up the VM and make the project immediately usable:
+
+1. Create VirtualBox VM and install Ubuntu
+2. Configure AZERTY French keyboard (3 methods)
+3. Update system packages
+4. Clone this repository
+5. **Install shell tools** (zsh, powerlevel10k theme, bat)
+6. **Add project to PATH** (so you can use `vm` instead of `./bin/vm`)
 
 **Quick Command**:
 ```bash
@@ -52,7 +55,17 @@ sudo dpkg-reconfigure keyboard-configuration  # AZERTY setup
 sudo apt-get update && sudo apt-get upgrade -y
 git clone https://github.com/YOUR_USERNAME/scripts-bash.git
 cd scripts-bash && chmod +x bin/vm core/tools/*.sh core/lib/*.sh
-./bin/vm --version  # Verify
+
+# Install shell and add to PATH
+./bin/vm setup shell
+# Follow prompts to add project to PATH, then reload shell
+```
+
+**After Phase 1**, you can use:
+```bash
+vm --version      # Instead of ./bin/vm --version
+vm setup lamp     # Instead of ./bin/vm setup lamp
+vm help           # Show all available commands
 ```
 
 ### Phase 2: LAMP Stack Installation
@@ -63,33 +76,32 @@ Install Apache2, MariaDB/MySQL, PHP-FPM, and phpMyAdmin with environment-specifi
 
 **Development** (recommended for local work):
 ```bash
-sudo ./bin/vm setup lamp development
+sudo vm setup lamp development
 ```
 - Full error display, Xdebug support, query logging
 - Access: http://localhost/phpmyadmin (superadmin/superpass)
 
 **Test** (for CI/CD pipelines):
 ```bash
-sudo ./bin/vm setup lamp test
+sudo vm setup lamp test
 ```
 
 **Production** (for live servers):
 ```bash
-sudo ./bin/vm setup lamp production
+sudo vm setup lamp production
 ```
 
 ### Phase 3: Optional Development Tools
 **Duration**: ~3-5 minutes each
 **Guide**: [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md) (Phase 3 section)
 
-Install any combination of tools:
+Install any combination of additional tools:
 
 ```bash
-./bin/vm setup nodejs      # Node.js + npm
-./bin/vm setup python      # Python 3
-./bin/vm setup shell       # zsh + powerlevel10k
-./bin/vm setup git-ssh     # SSH keys + Git config
-./bin/vm setup eslint      # ESLint for React
+vm setup nodejs      # Node.js + npm
+vm setup python      # Python 3
+vm setup git-ssh     # SSH keys + Git config
+vm setup eslint      # ESLint for React
 ```
 
 This phase also generates SSH keys and configures SSH for VSCode remote access.
@@ -182,36 +194,46 @@ scripts-bash/
 
 ### Main Command
 ```bash
-./bin/vm [command] [options]
+vm [command] [options]
 ```
+
+**Note**: After Phase 1 (`vm setup shell`), the project is added to PATH, so you can use `vm` directly instead of `./bin/vm`.
 
 ### Available Commands
 
 ```bash
 # Help & Info
-./bin/vm help                    # Show all commands
-./bin/vm --version               # Show version
-./bin/vm --help                  # Show detailed help
+vm help                          # Show all commands
+vm --version                     # Show version
+vm --help                        # Show detailed help
 
 # Setup Tools
-./bin/vm setup                   # Interactive menu
-./bin/vm setup lamp              # LAMP stack
-./bin/vm setup nodejs            # Node.js
-./bin/vm setup python            # Python
-./bin/vm setup shell             # zsh + powerlevel10k
-./bin/vm setup git-ssh           # Git + SSH setup
-./bin/vm setup eslint            # ESLint
-./bin/vm setup [tool] [env]      # With environment (dev/test/prod)
+vm setup                         # Interactive menu
+vm setup lamp [env]              # LAMP stack (dev/test/prod)
+vm setup nodejs                  # Node.js + npm
+vm setup python                  # Python 3
+vm setup shell                   # zsh + powerlevel10k + bat
+vm setup git-ssh                 # SSH keys + Git config
+vm setup eslint                  # ESLint for React
 
 # System Info
-./bin/vm diagnose               # System diagnostics
-./bin/vm version                # Show version
+vm diagnose                      # System diagnostics
+vm version                       # Show version
 
 # Updates
-./bin/vm update check           # Check for updates
-./bin/vm update auto            # Auto-update with backup
-./bin/vm list-backups           # Show available backups
-./bin/vm rollback [backup]      # Restore from backup
+vm update check                  # Check for updates
+vm update auto                   # Auto-update with backup
+vm list-backups                  # Show available backups
+vm rollback [backup]             # Restore from backup
+```
+
+### If Project Not in PATH Yet
+```bash
+# During Phase 1 before shell setup
+./bin/vm setup shell
+
+# After shell setup, use simple syntax
+vm [command]
 ```
 
 ---
@@ -278,14 +300,16 @@ tail -f /var/log/php_errors.log
 
 ### PHP/LAMP Development
 ```bash
-# Phase 1: Setup Ubuntu
+# Phase 1: Initial setup (done first)
 cd ~/projects/scripts-bash
+./bin/vm setup shell        # Install zsh, powerlevel10k, bat + add to PATH
+# Reload shell to activate
 
 # Phase 2: Install LAMP
-sudo ./bin/vm setup lamp development
+sudo vm setup lamp development
 
 # Phase 3: Setup Git/SSH
-./bin/vm setup git-ssh
+vm setup git-ssh
 
 # Phase 4: Connect with VSCode
 # → Install Remote-SSH extension
@@ -296,31 +320,27 @@ sudo ./bin/vm setup lamp development
 
 ### Full Stack Development (PHP + Node.js)
 ```bash
-# Install LAMP for PHP
-sudo ./bin/vm setup lamp development
-
-# Install Node.js for JavaScript/React
-./bin/vm setup nodejs
-
-# Setup ESLint for code quality
-./bin/vm setup eslint
-
-# Configure development shell
+# Phase 1: Setup shell first (enables all following commands)
 ./bin/vm setup shell
 
-# Setup Git/SSH
-./bin/vm setup git-ssh
+# Phase 2: Install LAMP for PHP
+sudo vm setup lamp development
 
-# Connect with VSCode Remote-SSH
+# Phase 3: Install additional tools
+vm setup nodejs             # Node.js + npm
+vm setup eslint             # ESLint for React
+vm setup git-ssh            # Git + SSH setup
+
+# Phase 4: Connect with VSCode Remote-SSH
 ```
 
 ### Node.js Web Application
 ```bash
-# Install Node.js
-./bin/vm setup nodejs
-
-# Install shell improvements
+# Phase 1: Setup shell first
 ./bin/vm setup shell
+
+# Phase 3: Install Node.js
+vm setup nodejs
 
 # Run app on VM
 npm start
