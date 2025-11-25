@@ -85,6 +85,8 @@ COMMANDS:
 
   setup-shell                 Install and configure Zsh, Powerlevel10k, and bat
 
+  setup-git-ssh               Setup SSH keys and Git configuration
+
   setup-eslint [directory]    Configure ESLint for React projects (Phase 6)
 
   help                        Show this help message
@@ -439,6 +441,18 @@ cmd_setup_shell() {
     install_shell_environment
 }
 
+# Setup Git and SSH command
+cmd_setup_git_ssh() {
+    # Source security setup
+    source "$PROJECT_ROOT/core/security/setup-git-ssh.sh" || {
+        print_error "Failed to load Git/SSH setup"
+        return 1
+    }
+
+    # Run complete setup
+    setup_git_ssh_complete
+}
+
 # Diagnostic command
 cmd_diagnostic() {
     print_section "System Diagnostic Information"
@@ -525,7 +539,7 @@ main() {
 
     # Parse global options that appear after command
     case "$command" in
-        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-shell|setup-eslint)
+        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-shell|setup-git-ssh|setup-eslint)
             shift || true
             # Check for global options mixed with command arguments
             while [[ $# -gt 0 ]]; do
@@ -581,6 +595,9 @@ main() {
                     ;;
                 setup-shell)
                     cmd_setup_shell "$@"
+                    ;;
+                setup-git-ssh)
+                    cmd_setup_git_ssh "$@"
                     ;;
                 setup-eslint)
                     print_warning "setup-eslint: Not yet implemented (Phase 6)"
