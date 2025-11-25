@@ -64,15 +64,25 @@ Ce dépôt sert de **collection centralisée** et **référence** pour :
 
 ### Installation - Vue d'ensemble
 
-**1. [Premiers Pas - Configuration Initiale](./FIRST-STEPS.md)** (À lire en PREMIER)
+**START HERE**: [Installation Workflow](./INSTALLATION-WORKFLOW.md) - Complete guide from blank VM to full setup
+
+**Detailed Guides**:
+
+1. **[Premiers Pas - Configuration Initiale](./FIRST-STEPS.md)** (À lire en PREMIER)
    - Configuration AZERTY pour clavier français
    - Clonage du dépôt
    - Configuration initiale Ubuntu VirtualBox
 
-**2. [Installation LAMP](./core/tools/LAMP-INSTALLATION-GUIDE.md)**
+2. **[Installation LAMP](./core/tools/LAMP-INSTALLATION-GUIDE.md)**
    - Installation Apache2, MariaDB, PHP-FPM
    - Configuration par environnement (dev/test/prod)
    - Configuration phpMyAdmin avec credentials superadmin/superpass
+
+3. **[Installation Workflow](./INSTALLATION-WORKFLOW.md)**
+   - Complete step-by-step process from scratch
+   - Environment setup timeline
+   - Troubleshooting guide
+   - Quick reference commands
 
 ### Installation Rapide (si déjà cloné)
 
