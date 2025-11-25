@@ -2,15 +2,17 @@
 # Common utilities and helper functions
 # Shared across all scripts in the system
 
-# Source required libraries
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "$SCRIPT_DIR/lib/colors.sh"
-source "$SCRIPT_DIR/lib/error-handler.sh"
-source "$SCRIPT_DIR/lib/validation.sh"
+# Source required libraries (if not already loaded)
+# These should be sourced in order: colors -> error-handler -> validation -> common
+# If they're already loaded, we skip re-sourcing them
+[[ -z "${COLORS_SOURCED:-}" ]] && source "$(dirname "${BASH_SOURCE[0]}")/colors.sh"
+[[ -z "${ERROR_HANDLER_SOURCED:-}" ]] && source "$(dirname "${BASH_SOURCE[0]}")/error-handler.sh"
+[[ -z "${VALIDATION_SOURCED:-}" ]] && source "$(dirname "${BASH_SOURCE[0]}")/validation.sh"
 
-# Export for subshells
-export SCRIPT_DIR
+# Export markers for subshells
 export COLORS_SOURCED=true
+export ERROR_HANDLER_SOURCED=true
+export VALIDATION_SOURCED=true
 
 # Get the root project directory
 get_root_dir() {

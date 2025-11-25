@@ -75,6 +75,13 @@ COMMANDS:
 
   diagnostic                  Show system and hypervisor information
 
+  setup [tools]               Install and configure development tools
+    [no args]                 Interactive menu for tool selection
+    lamp                      Install LAMP stack
+    nodejs                    Install Node.js and npm
+    python                    Install Python with venv
+    angular                   Install Angular CLI
+
   setup-eslint [directory]    Configure ESLint for React projects (Phase 6)
 
   help                        Show this help message
@@ -390,6 +397,33 @@ cmd_cleanup() {
     fi
 }
 
+# Setup development tools command
+cmd_setup() {
+    local -a tools=("$@")
+
+    # Source tool selector
+    source "$PROJECT_ROOT/core/tools/tool-selector.sh" || {
+        print_error "Failed to load tool selector"
+        return 1
+    }
+
+    if [[ ${#tools[@]} -eq 0 ]]; then
+        # Show interactive menu
+        local selection
+        selection=$(show_tool_menu_simple) || return 1
+
+        if [[ -z "$selection" ]]; then
+            print_warning "No tools selected"
+            return 0
+        fi
+
+        read -ra tools <<< "$selection"
+    fi
+
+    # Install selected tools
+    install_selected_tools "${tools[@]}"
+}
+
 # Diagnostic command
 cmd_diagnostic() {
     print_section "System Diagnostic Information"
@@ -476,7 +510,7 @@ main() {
 
     # Parse global options that appear after command
     case "$command" in
-        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup-eslint)
+        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-eslint)
             shift || true
             # Check for global options mixed with command arguments
             while [[ $# -gt 0 ]]; do
@@ -526,6 +560,9 @@ main() {
                     ;;
                 diagnostic)
                     cmd_diagnostic "$@"
+                    ;;
+                setup)
+                    cmd_setup "$@"
                     ;;
                 setup-eslint)
                     print_warning "setup-eslint: Not yet implemented (Phase 6)"
