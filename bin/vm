@@ -1,0 +1,547 @@
+#!/bin/bash
+# Main VM Management Script
+# Orchestrates hypervisor operations and development environment setup
+# Usage: vm [command] [options]
+
+set -euo pipefail
+
+# Get the root directory of the project
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+# Source core libraries
+source "$PROJECT_ROOT/core/lib/colors.sh"
+source "$PROJECT_ROOT/core/lib/error-handler.sh"
+source "$PROJECT_ROOT/core/lib/validation.sh"
+source "$PROJECT_ROOT/core/lib/common.sh"
+source "$PROJECT_ROOT/core/config/defaults.sh"
+source "$PROJECT_ROOT/core/hypervisors/hypervisor-interface.sh"
+source "$PROJECT_ROOT/core/hypervisors/driver-registry.sh"
+
+# Version
+VM_VERSION="0.1.0"
+
+# Global variables
+SELECTED_DRIVER=""
+SELECTED_HYPERVISOR=""
+DRY_RUN=false
+VERBOSE=false
+
+# Register cleanup handlers
+register_cleanup "cleanup_vm_script"
+
+cleanup_vm_script() {
+    :  # Placeholder for additional cleanup if needed
+}
+
+# Display version
+show_version() {
+    echo "vm version $VM_VERSION"
+}
+
+# Display help
+show_help() {
+    cat << 'EOF'
+VM Management System - Unified Hypervisor Interface
+
+USAGE:
+  vm [COMMAND] [OPTIONS]
+
+COMMANDS:
+  create <name> [options]     Create a new VM
+    --cpus <n>                Number of CPUs (default: 2)
+    --memory <size>           Memory in MB (default: 4096)
+    --disk <size>             Disk size in GB (default: 15)
+    --hypervisor <type>       Hypervisor: multipass, virtualbox (auto-detected)
+    --image <image>           Image to use (multipass only)
+    --dry-run                 Show what would be done
+
+  start <name>                Start a stopped VM
+
+  stop <name>                 Stop a running VM
+
+  delete <name>               Delete a VM
+    --force                   Don't ask for confirmation
+
+  list                        List all VMs
+
+  connect <name>              Connect to VM via SSH/shell
+
+  mount <name> <local> <vm>   Mount local directory in VM
+    --local <path>            Local directory path
+    --vm <path>               VM mount path
+
+  cleanup                     Clean up temporary resources
+
+  diagnostic                  Show system and hypervisor information
+
+  setup-eslint [directory]    Configure ESLint for React projects (Phase 6)
+
+  help                        Show this help message
+
+OPTIONS:
+  --dry-run                   Show what would be done without making changes
+  --verbose, -v               Enable verbose output
+  --help, -h                  Show help for command
+  --version                   Show version
+
+EXAMPLES:
+  # Create a VM on auto-detected hypervisor
+  vm create my-vm
+
+  # Create with specific resources
+  vm create dev --cpus 4 --memory 8192 --disk 20
+
+  # Use specific hypervisor
+  vm create test --hypervisor virtualbox
+
+  # List all VMs
+  vm list
+
+  # Stop and delete
+  vm stop my-vm
+  vm delete my-vm
+
+  # Mount directory
+  vm mount my-vm ~/projects /home/ubuntu/projects
+
+  # Dry-run to preview
+  vm create preview-vm --dry-run
+EOF
+}
+
+# Initialize hypervisor driver
+init_driver() {
+    local hypervisor=${1:-}
+
+    if [[ -n "$hypervisor" ]]; then
+        # User specified hypervisor
+        if ! load_driver "$hypervisor"; then
+            print_error "Failed to load driver for hypervisor: $hypervisor"
+            print_info "Available hypervisors:"
+            detect_hypervisors | tr ' ' '\n' | sed 's/^/  - /'
+            return 1
+        fi
+        SELECTED_HYPERVISOR="$hypervisor"
+    else
+        # Auto-detect available hypervisors
+        local available
+        available=$(detect_hypervisors)
+
+        if [[ -z "$available" ]]; then
+            print_error "No hypervisors detected. Please install Multipass or VirtualBox."
+            return 1
+        fi
+
+        # Count available hypervisors
+        local count
+        count=$(echo "$available" | wc -w)
+
+        if [[ $count -eq 1 ]]; then
+            # Only one hypervisor available, use it
+            SELECTED_HYPERVISOR="$available"
+            if ! load_driver "$SELECTED_HYPERVISOR"; then
+                print_error "Failed to load driver for detected hypervisor: $SELECTED_HYPERVISOR"
+                return 1
+            fi
+            print_debug "Auto-selected hypervisor: $SELECTED_HYPERVISOR"
+        else
+            # Multiple hypervisors available, let user choose
+            print_info "Multiple hypervisors detected. Please select one:"
+            SELECTED_HYPERVISOR=$(select_driver "$available") || return 1
+            print_ok "Selected hypervisor: $SELECTED_HYPERVISOR"
+        fi
+    fi
+
+    return 0
+}
+
+# Create VM command
+cmd_create() {
+    local vm_name=${1:-}
+    local hypervisor=""
+    local cpus="${DEFAULT_CPUS:-2}"
+    local memory="${DEFAULT_MEMORY:-4096}"
+    local disk="${DEFAULT_DISK:-15}"
+    local image=""
+
+    # Parse options
+    shift || true
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --cpus)
+                cpus="$2"
+                shift 2
+                ;;
+            --memory)
+                memory="$2"
+                shift 2
+                ;;
+            --disk)
+                disk="$2"
+                shift 2
+                ;;
+            --hypervisor)
+                hypervisor="$2"
+                shift 2
+                ;;
+            --image)
+                image="$2"
+                shift 2
+                ;;
+            --dry-run)
+                DRY_RUN=true
+                shift
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                return 1
+                ;;
+        esac
+    done
+
+    # Validate inputs
+    [[ -z "$vm_name" ]] && { print_error "VM name required"; return 1; }
+    validate_vm_name "$vm_name" || return 1
+
+    # Validate numeric parameters (allow optional units like G, M for disk/memory)
+    if ! [[ "$cpus" =~ ^[0-9]+$ ]]; then
+        print_error "Invalid CPU count: $cpus"
+        return 1
+    fi
+    if ! [[ "$memory" =~ ^[0-9]+(M|G)?$ ]]; then
+        print_error "Invalid memory size: $memory"
+        return 1
+    fi
+    if ! [[ "$disk" =~ ^[0-9]+(G|T)?$ ]]; then
+        print_error "Invalid disk size: $disk"
+        return 1
+    fi
+
+    # Initialize driver
+    init_driver "$hypervisor" || return 1
+
+    # Call driver function
+    driver_create_vm "$vm_name" "$cpus" "$memory" "$disk" "$image"
+}
+
+# Start VM command
+cmd_start() {
+    local vm_name=${1:-}
+
+    [[ -z "$vm_name" ]] && { print_error "VM name required"; return 1; }
+    validate_vm_name "$vm_name" || return 1
+
+    init_driver "" || return 1
+    driver_start_vm "$vm_name"
+}
+
+# Stop VM command
+cmd_stop() {
+    local vm_name=${1:-}
+
+    [[ -z "$vm_name" ]] && { print_error "VM name required"; return 1; }
+    validate_vm_name "$vm_name" || return 1
+
+    init_driver "" || return 1
+    driver_stop_vm "$vm_name"
+}
+
+# Delete VM command
+cmd_delete() {
+    local vm_name=${1:-}
+    local force=false
+
+    # Parse options
+    shift || true
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --force)
+                force=true
+                shift
+                ;;
+            *)
+                print_error "Unknown option: $1"
+                return 1
+                ;;
+        esac
+    done
+
+    [[ -z "$vm_name" ]] && { print_error "VM name required"; return 1; }
+    validate_vm_name "$vm_name" || return 1
+
+    if ! $force; then
+        confirm "Are you sure you want to delete VM '$vm_name'?" || return 0
+    fi
+
+    init_driver "" || return 1
+    driver_delete_vm "$vm_name"
+}
+
+# List VMs command
+cmd_list() {
+    print_section "Available Virtual Machines"
+
+    init_driver "" || return 1
+
+    local vms
+    vms=$(driver_list_vms)
+
+    if [[ -z "$vms" ]]; then
+        print_info "No virtual machines found"
+        return 0
+    fi
+
+    print_subsection "Hypervisor: $SELECTED_HYPERVISOR"
+    echo "$vms" | while read -r vm; do
+        local status
+        status=$(driver_get_vm_status "$vm" 2>/dev/null || echo "unknown")
+        local status_color
+        case "$status" in
+            running) status_color="${GREEN}$status${NC}" ;;
+            stopped) status_color="${YELLOW}$status${NC}" ;;
+            *) status_color="${RED}$status${NC}" ;;
+        esac
+        printf "  %s %-30s %s\n" "$DOT" "$vm" "$status_color"
+    done
+    echo ""
+}
+
+# Connect to VM command
+cmd_connect() {
+    local vm_name=${1:-}
+
+    [[ -z "$vm_name" ]] && { print_error "VM name required"; return 1; }
+    validate_vm_name "$vm_name" || return 1
+
+    init_driver "" || return 1
+
+    local vm_ip
+    vm_ip=$(driver_get_vm_ip "$vm_name") || {
+        print_error "Could not get IP for VM: $vm_name"
+        return 1
+    }
+
+    if [[ "$vm_ip" == "N/A" ]]; then
+        print_error "IP address not available for VM: $vm_name"
+        print_info "For VirtualBox, ensure SSH is configured and guest properties are updated"
+        return 1
+    fi
+
+    print_info "Connecting to $vm_name ($vm_ip)..."
+    ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null "ubuntu@$vm_ip"
+}
+
+# Mount directory command
+cmd_mount() {
+    local vm_name=${1:-}
+    local local_path=""
+    local vm_path=""
+
+    shift || true
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            --local)
+                local_path="$2"
+                shift 2
+                ;;
+            --vm)
+                vm_path="$2"
+                shift 2
+                ;;
+            *)
+                if [[ -z "$local_path" ]]; then
+                    local_path="$1"
+                    shift
+                elif [[ -z "$vm_path" ]]; then
+                    vm_path="$1"
+                    shift
+                else
+                    print_error "Unknown option: $1"
+                    return 1
+                fi
+                ;;
+        esac
+    done
+
+    [[ -z "$vm_name" ]] && { print_error "VM name required"; return 1; }
+    [[ -z "$local_path" ]] && { print_error "Local path required"; return 1; }
+    [[ -z "$vm_path" ]] && { print_error "VM mount path required"; return 1; }
+
+    validate_vm_name "$vm_name" || return 1
+
+    init_driver "" || return 1
+    driver_mount_directory "$vm_name" "$local_path" "$vm_path"
+}
+
+# Cleanup command
+cmd_cleanup() {
+    print_section "Cleaning up temporary resources"
+    print_info "Removing temporary files..."
+
+    local temp_dir
+    temp_dir="${TEMP_DIR:-./.temp}"
+
+    if [[ -d "$temp_dir" ]]; then
+        rm -rf "$temp_dir"
+        print_ok "Cleaned up: $temp_dir"
+    else
+        print_info "No temporary files to clean up"
+    fi
+}
+
+# Diagnostic command
+cmd_diagnostic() {
+    print_section "System Diagnostic Information"
+
+    # System info
+    print_subsection "System Information"
+    echo "  OS: $(get_os)"
+    echo "  Distro: $(get_linux_distro)"
+    echo "  Kernel: $(uname -r)"
+    echo "  In VM: $(is_in_vm && echo 'Yes' || echo 'No')"
+    echo ""
+
+    # Hypervisors
+    print_subsection "Hypervisors"
+    local available
+    available=$(detect_hypervisors)
+
+    if [[ -z "$available" ]]; then
+        print_warning "No hypervisors detected"
+    else
+        echo "  Available: $(echo "$available" | tr ' ' ', ')"
+        echo ""
+
+        # Check versions
+        for hv in $available; do
+            if [[ "$hv" == "multipass" ]] && command_exists multipass; then
+                local version
+                version=$(multipass version 2>/dev/null | head -n 1 || echo "unknown")
+                echo "  Multipass: $version"
+            elif [[ "$hv" == "virtualbox" ]] && command_exists VBoxManage; then
+                local version
+                version=$(VBoxManage --version 2>/dev/null || echo "unknown")
+                echo "  VirtualBox: $version"
+            fi
+        done
+    fi
+    echo ""
+
+    # Tools
+    print_subsection "Development Tools"
+    for tool in git ssh docker node python3 go rust; do
+        if command_exists "$tool"; then
+            local version
+            version=$($tool --version 2>/dev/null | head -n 1 || echo "installed")
+            printf "  %-15s %s\n" "$tool:" "$version"
+        fi
+    done
+    echo ""
+
+    # Sudo
+    print_subsection "Permissions"
+    if has_sudo; then
+        echo "  sudo (no password): Available"
+    else
+        echo "  sudo (no password): Not available"
+    fi
+    if is_root; then
+        echo "  Running as: root"
+    else
+        echo "  Running as: user ($(whoami))"
+    fi
+    echo ""
+}
+
+# Main command router
+main() {
+    local command=${1:-}
+
+    # Handle global options before command
+    case "$command" in
+        --version|-V)
+            show_version
+            exit 0
+            ;;
+        --help|-h|help)
+            show_help
+            exit 0
+            ;;
+        "")
+            show_help
+            exit 0
+            ;;
+    esac
+
+    # Parse global options that appear after command
+    case "$command" in
+        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup-eslint)
+            shift || true
+            # Check for global options mixed with command arguments
+            while [[ $# -gt 0 ]]; do
+                case "$1" in
+                    --dry-run)
+                        DRY_RUN=true
+                        shift
+                        ;;
+                    --verbose|-v)
+                        VERBOSE=true
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                esac
+            done
+
+            # Add back the arguments for the command
+            set -- "$@"
+
+            # Execute command
+            case "$command" in
+                create)
+                    cmd_create "$@"
+                    ;;
+                start)
+                    cmd_start "$@"
+                    ;;
+                stop)
+                    cmd_stop "$@"
+                    ;;
+                delete)
+                    cmd_delete "$@"
+                    ;;
+                list)
+                    cmd_list "$@"
+                    ;;
+                connect)
+                    cmd_connect "$@"
+                    ;;
+                mount)
+                    cmd_mount "$@"
+                    ;;
+                cleanup)
+                    cmd_cleanup "$@"
+                    ;;
+                diagnostic)
+                    cmd_diagnostic "$@"
+                    ;;
+                setup-eslint)
+                    print_warning "setup-eslint: Not yet implemented (Phase 6)"
+                    return 1
+                    ;;
+            esac
+            ;;
+        *)
+            print_error "Unknown command: $command"
+            echo ""
+            show_help
+            exit 1
+            ;;
+    esac
+}
+
+# Execute main function
+main "$@"
+exit $?
