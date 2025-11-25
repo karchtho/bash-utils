@@ -94,6 +94,11 @@ COMMANDS:
   generate-hook <name>        Generate custom React hook
   generate-context <name>     Generate React context provider
 
+  update                      Check for and install updates with rollback support
+  list-backups                List available backup versions
+  rollback [backup-path]      Rollback to a previous version
+  update-log                  View update history log
+
   help                        Show this help message
 
 OPTIONS:
@@ -529,6 +534,68 @@ cmd_generate_context() {
     generate_context "$context_name" "./src/contexts"
 }
 
+# Update check and install command
+cmd_update() {
+    # Source auto-updater
+    source "$PROJECT_ROOT/core/update/auto-updater.sh" || {
+        print_error "Failed to load auto-updater"
+        return 1
+    }
+
+    # Check for updates
+    if check_for_updates; then
+        print_warning "Update available. Proceeding with installation..."
+        echo ""
+        perform_update
+    else
+        return $?
+    fi
+}
+
+# List available backups command
+cmd_list_backups() {
+    # Source auto-updater
+    source "$PROJECT_ROOT/core/update/auto-updater.sh" || {
+        print_error "Failed to load auto-updater"
+        return 1
+    }
+
+    list_backups
+}
+
+# Rollback to backup command
+cmd_rollback() {
+    local backup_path=${1:-}
+
+    # Source auto-updater
+    source "$PROJECT_ROOT/core/update/auto-updater.sh" || {
+        print_error "Failed to load auto-updater"
+        return 1
+    }
+
+    if [[ -z "$backup_path" ]]; then
+        print_section "Available Backups"
+        list_backups
+        echo ""
+        echo "Specify backup path to rollback:"
+        echo "  vm rollback <backup-path>"
+        return 1
+    fi
+
+    rollback_to_backup "$backup_path"
+}
+
+# View update log command
+cmd_update_log() {
+    # Source auto-updater
+    source "$PROJECT_ROOT/core/update/auto-updater.sh" || {
+        print_error "Failed to load auto-updater"
+        return 1
+    }
+
+    view_update_log
+}
+
 # Diagnostic command
 cmd_diagnostic() {
     print_section "System Diagnostic Information"
@@ -615,7 +682,7 @@ main() {
 
     # Parse global options that appear after command
     case "$command" in
-        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-shell|setup-git-ssh|setup-eslint|generate-component|generate-hook|generate-context)
+        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-shell|setup-git-ssh|setup-eslint|generate-component|generate-hook|generate-context|update|list-backups|rollback|update-log)
             shift || true
             # Check for global options mixed with command arguments
             while [[ $# -gt 0 ]]; do
@@ -686,6 +753,18 @@ main() {
                     ;;
                 generate-context)
                     cmd_generate_context "$@"
+                    ;;
+                update)
+                    cmd_update "$@"
+                    ;;
+                list-backups)
+                    cmd_list_backups "$@"
+                    ;;
+                rollback)
+                    cmd_rollback "$@"
+                    ;;
+                update-log)
+                    cmd_update_log "$@"
                     ;;
             esac
             ;;
