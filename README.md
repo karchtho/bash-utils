@@ -84,6 +84,12 @@ Ce dépôt sert de **collection centralisée** et **référence** pour :
    - Troubleshooting guide
    - Quick reference commands
 
+4. **[VSCode Remote-SSH Setup](./VSCODE-REMOTE-SSH.md)**
+   - Connect VSCode to your VM from host machine
+   - Works on Windows, macOS, and Linux
+   - Remote development and debugging
+   - Port forwarding for web development
+
 ### Installation Rapide (si déjà cloné)
 
 ```bash

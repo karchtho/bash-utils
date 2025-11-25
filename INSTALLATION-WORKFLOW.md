@@ -208,6 +208,41 @@ Use for: React development, code quality
 
 ---
 
+## Phase 4: VSCode Remote-SSH Configuration (Optional)
+
+After completing phases 1-3, configure VSCode to connect and develop on your VM:
+
+### Why Use Remote-SSH?
+- **Edit code directly** on VM from your host VSCode
+- **Run commands** on VM from integrated terminal
+- **Debug applications** running on the VM
+- **Access tools** installed on VM (PHP, Node, Python, etc.)
+- **Works on Windows, macOS, and Linux**
+
+### Quick Setup
+
+1. **Install** Remote - SSH extension in VSCode
+2. **SSH config** already created in Phase 3 (`vm setup git-ssh`)
+3. **Connect** using VSCode Remote Explorer
+4. **Start developing** immediately!
+
+### Platform Notes
+
+- **Windows 10/11**: Uses built-in OpenSSH (or Git Bash)
+- **macOS**: SSH included, just needs configuration
+- **Linux**: SSH included, just needs configuration
+
+### Complete Reference
+
+See **[VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md)** for:
+- Detailed setup for Windows, macOS, Linux
+- Troubleshooting guide
+- Advanced configuration options
+- Performance optimization tips
+- Port forwarding for web development
+
+---
+
 ## Complete Timeline
 
 ### First Boot
