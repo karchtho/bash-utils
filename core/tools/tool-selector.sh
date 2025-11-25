@@ -16,6 +16,7 @@ source "${SCRIPT_DIR}/core/tools/lamp-installer.sh"
 source "${SCRIPT_DIR}/core/tools/nodejs-installer.sh"
 source "${SCRIPT_DIR}/core/tools/python-installer.sh"
 source "${SCRIPT_DIR}/core/tools/angular-installer.sh"
+source "${SCRIPT_DIR}/core/tools/bat-installer.sh"
 
 # Tool definitions
 declare -A TOOLS=(
@@ -23,6 +24,7 @@ declare -A TOOLS=(
     [nodejs]="Node.js and npm (LTS)"
     [python]="Python3 with venv"
     [angular]="Angular (requires Node.js)"
+    [bat]="bat - cat clone with syntax highlighting"
 )
 
 # Tool dependencies
@@ -31,6 +33,7 @@ declare -A TOOL_DEPS=(
     [nodejs]=""
     [python]=""
     [angular]="nodejs"
+    [bat]=""
 )
 
 # Tool installers
@@ -39,6 +42,7 @@ declare -A TOOL_INSTALLERS=(
     [nodejs]="install_nodejs"
     [python]="install_python"
     [angular]="install_angular_cli"
+    [bat]="install_bat"
 )
 
 # Display tool selection menu
@@ -51,7 +55,7 @@ show_tool_menu() {
     local -a tool_names=()
 
     # Build tool list
-    for tool in lamp nodejs python angular; do
+    for tool in lamp nodejs python angular bat; do
         tool_list+=("$tool")
         tool_names+=("${TOOLS[$tool]}")
     done
@@ -131,7 +135,7 @@ show_tool_menu_simple() {
     echo ""
 
     local -a tool_list=()
-    for tool in lamp nodejs python angular; do
+    for tool in lamp nodejs python angular bat; do
         tool_list+=("$tool")
     done
 
@@ -245,6 +249,9 @@ verify_tool_installed() {
             ;;
         angular)
             command_exists ng
+            ;;
+        bat)
+            command_exists bat
             ;;
         *)
             print_error "Unknown tool: $tool"
