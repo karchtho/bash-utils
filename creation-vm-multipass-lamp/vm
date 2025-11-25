@@ -1,0 +1,79 @@
+#!/bin/bash
+# Main wrapper script for VM management commands
+# This should be symlinked to ~/bin/vm
+
+set -euo pipefail
+
+# Determine the actual location of the scripts
+# If this script is a symlink, resolve to the actual location
+if [ -L "${BASH_SOURCE[0]}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")" && pwd)"
+else
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+fi
+
+# Available commands
+COMMANDS="create connect cleanup diagnostic mount"
+
+# Show usage
+show_usage() {
+    echo "VM Management Tool"
+    echo ""
+    echo "Usage: vm <command> [options]"
+    echo ""
+    echo "Commands:"
+    echo "  create      Create a new VM with LAMP stack"
+    echo "  connect     Connect to an existing VM/project"
+    echo "  cleanup     Clean up VMs and configurations"
+    echo "  diagnostic  Diagnose VM setup issues"
+    echo "  mount       Mount a host directory to VM"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help  Show help for a specific command"
+    echo ""
+    echo "Examples:"
+    echo "  vm create --dry-run"
+    echo "  vm connect"
+    echo "  vm cleanup"
+    echo "  vm diagnostic webvm projet1"
+    echo "  vm mount"
+}
+
+# Check if a command was provided
+if [ $# -eq 0 ]; then
+    show_usage
+    exit 1
+fi
+
+# Get the command
+COMMAND="$1"
+shift
+
+# Execute the appropriate script
+case "$COMMAND" in
+    create)
+        exec "$SCRIPT_DIR/create_webvm.sh" "$@"
+        ;;
+    connect)
+        exec "$SCRIPT_DIR/connect_project.sh" "$@"
+        ;;
+    cleanup)
+        exec "$SCRIPT_DIR/cleanup.sh" "$@"
+        ;;
+    diagnostic|diag)
+        exec "$SCRIPT_DIR/diagnostique.sh" "$@"
+        ;;
+    mount)
+        exec "$SCRIPT_DIR/mount_vmRan.sh" "$@"
+        ;;
+    -h|--help|help)
+        show_usage
+        exit 0
+        ;;
+    *)
+        echo "❌ Unknown command: $COMMAND"
+        echo ""
+        show_usage
+        exit 1
+        ;;
+esac

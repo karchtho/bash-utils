@@ -20,7 +20,8 @@ source_backup_functions() {
 
     backup_hosts() {
         create_backup_dir
-        local timestamp=$(date '+%Y-%m-%d-%Hh%M')
+        local timestamp
+        timestamp=$(date '+%Y-%m-%d-%Hh%M')
         local backup_file="$BACKUP_DIR/hosts.backup.$timestamp"
 
         if cp /etc/hosts "$backup_file"; then
@@ -63,7 +64,7 @@ delete_specific_vm() {
     echo
     multipass list
     echo
-    read -p "➡️ Nom de la VM à supprimer (ou ENTER pour annuler) : " vm_name
+    read -r -p "➡️ Nom de la VM à supprimer (ou ENTER pour annuler) : " vm_name
 
     if [ -z "$vm_name" ]; then
         echo "❌ Annulé"
@@ -76,7 +77,7 @@ delete_specific_vm() {
     fi
 
     echo "⚠️ Vous allez supprimer la VM '$vm_name'"
-    read -p "Confirmer ? [y/N] : " confirm
+    read -r -p "Confirmer ? [y/N] : " confirm
 
     if [[ "$confirm" =~ ^[yY]$ ]]; then
         echo "🛑 Arrêt de la VM..."
@@ -94,7 +95,8 @@ delete_specific_vm() {
 delete_stopped_vms() {
     echo "🗑️ === SUPPRESSION VMs ARRÊTÉES ==="
 
-    local stopped_vms=$(multipass list --format csv | awk -F',' 'NR>1 && $2=="Stopped" {print $1}')
+    local stopped_vms
+    stopped_vms=$(multipass list --format csv | awk -F',' 'NR>1 && $2=="Stopped" {print $1}')
 
     if [ -z "$stopped_vms" ]; then
         echo "ℹ️ Aucune VM arrêtée trouvée"
@@ -104,13 +106,13 @@ delete_stopped_vms() {
     echo "VMs arrêtées trouvées :"
     echo "$stopped_vms"
     echo
-    read -p "Supprimer toutes ces VMs ? [y/N] : " confirm
+    read -r -p "Supprimer toutes ces VMs ? [y/N] : " confirm
 
     if [[ "$confirm" =~ ^[yY]$ ]]; then
-        for vm in $stopped_vms; do
+        while IFS= read -r vm; do
             echo "🗑️ Suppression de '$vm'..."
             multipass delete "$vm"
-        done
+        done <<< "$stopped_vms"
         multipass purge
         echo "✅ VMs arrêtées supprimées"
     else
@@ -136,15 +138,17 @@ cleanup_orphaned_ssh() {
     echo "💾 Backup des configurations SSH créé"
 
     # Lister les VMs actives
-    local active_vms=$(multipass list --format csv | awk -F',' 'NR>1 {print $1}')
+    local active_vms
+    active_vms=$(multipass list --format csv | awk -F',' 'NR>1 {print $1}')
 
     echo "🔍 Recherche de configurations SSH orphelines..."
 
     # Extraire les hosts définis dans ~/.ssh/config
-    local ssh_hosts=$(grep "^Host " "$ssh_config" | awk '{print $2}' | grep -v "\*")
+    local ssh_hosts
+    ssh_hosts=$(grep "^Host " "$ssh_config" | awk '{print $2}' | grep -v "\*")
 
     local orphaned_hosts=""
-    for host in $ssh_hosts; do
+    while IFS= read -r host; do
         # Vérifier si le host correspond à une VM active
         if ! echo "$active_vms" | grep -q "^$host$"; then
             # Vérifier si c'est potentiellement une VM (exclure localhost, github.com, etc.)
@@ -152,7 +156,7 @@ cleanup_orphaned_ssh() {
                 orphaned_hosts="$orphaned_hosts $host"
             fi
         fi
-    done
+    done <<< "$ssh_hosts"
 
     if [ -z "$orphaned_hosts" ]; then
         echo "✅ Aucune configuration SSH orpheline trouvée"
@@ -164,7 +168,7 @@ cleanup_orphaned_ssh() {
         echo "  - $host"
     done
     echo
-    read -p "Supprimer ces configurations ? [y/N] : " confirm
+    read -r -p "Supprimer ces configurations ? [y/N] : " confirm
 
     if [[ "$confirm" =~ ^[yY]$ ]]; then
         for host in $orphaned_hosts; do
@@ -174,7 +178,8 @@ cleanup_orphaned_ssh() {
             # Supprimer les entrées du known_hosts si elles existent
             if [ -f "$ssh_known_hosts" ]; then
                 # Essayer de récupérer l'IP du host depuis l'ancien config
-                local host_ip=$(grep -A 10 "^Host $host$" "$ssh_config.backup."* 2>/dev/null | grep "HostName" | awk '{print $2}' | head -1)
+                local host_ip
+                host_ip=$(grep -A 10 "^Host $host$" "$ssh_config.backup."* 2>/dev/null | grep "HostName" | awk '{print $2}' | head -1)
                 if [ -n "$host_ip" ]; then
                     ssh-keygen -R "$host_ip" -f "$ssh_known_hosts" 2>/dev/null || true
                 fi
@@ -195,7 +200,8 @@ cleanup_orphaned_hosts() {
     backup_hosts
 
     # Lister les IPs des VMs actives
-    local active_ips=$(multipass list --format csv | awk -F',' 'NR>1 && $2=="Running" {print $3}')
+    local active_ips
+    active_ips=$(multipass list --format csv | awk -F',' 'NR>1 && $2=="Running" {print $3}')
 
     if [ -z "$active_ips" ]; then
         echo "ℹ️ Aucune VM active, impossible de déterminer les entrées orphelines"
@@ -205,8 +211,10 @@ cleanup_orphaned_hosts() {
     echo "🔍 Recherche d'entrées orphelines dans /etc/hosts..."
 
     # Chercher les entrées qui contiennent des IPs de la plage Multipass (172.x ou 10.x généralement)
-    local orphaned_entries=$(grep -E '^(172\.|10\.|192\.168\.)' /etc/hosts | while read line; do
-        local ip=$(echo "$line" | awk '{print $1}')
+    local orphaned_entries
+    orphaned_entries=$(grep -E '^(172\.|10\.|192\.168\.)' /etc/hosts | while IFS= read -r line; do
+        local ip
+        ip=$(echo "$line" | awk '{print $1}')
         if ! echo "$active_ips" | grep -q "$ip"; then
             echo "$line"
         fi
@@ -220,14 +228,16 @@ cleanup_orphaned_hosts() {
     echo "Entrées potentiellement orphelines :"
     echo "$orphaned_entries"
     echo
-    read -p "Supprimer ces entrées ? [y/N] : " confirm
+    read -r -p "Supprimer ces entrées ? [y/N] : " confirm
 
     if [[ "$confirm" =~ ^[yY]$ ]]; then
         # Supprimer les entrées orphelines
         while IFS= read -r line; do
-            local ip=$(echo "$line" | awk '{print $1}')
-            local domain=$(echo "$line" | awk '{print $2}')
-            sudo sed -i "\|^$ip[[:space:]]*$domain|d" /etc/hosts
+            local ip
+            ip=$(echo "$line" | awk '{print $1}')
+            local domain
+            domain=$(echo "$line" | awk '{print $2}')
+            sudo sed -i "\|^${ip}[[:space:]]*${domain}|d" /etc/hosts
             echo "🗑️ Supprimé : $ip $domain"
         done <<< "$orphaned_entries"
         echo "✅ Entrées orphelines supprimées"
@@ -246,7 +256,7 @@ manage_hosts_backups() {
     fi
 
     echo "Backups disponibles :"
-    ls -lt "$BACKUP_DIR"/hosts.backup.* | while read line; do
+    ls -lt "$BACKUP_DIR"/hosts.backup.* | while IFS= read -r line; do
         echo "$line"
     done
     echo
@@ -255,11 +265,11 @@ manage_hosts_backups() {
     echo "2) Supprimer tous les backups"
     echo "3) Retour au menu principal"
     echo
-    read -p "Choix : " choice
+    read -r -p "Choix : " choice
 
     case $choice in
         1)
-            read -p "Nom complet du fichier backup à restaurer : " backup_file
+            read -r -p "Nom complet du fichier backup à restaurer : " backup_file
             if [ -f "$BACKUP_DIR/$backup_file" ]; then
                 backup_hosts  # Backup avant restauration
                 sudo cp "$BACKUP_DIR/$backup_file" /etc/hosts
@@ -269,7 +279,7 @@ manage_hosts_backups() {
             fi
             ;;
         2)
-            read -p "Supprimer tous les backups ? [y/N] : " confirm
+            read -r -p "Supprimer tous les backups ? [y/N] : " confirm
             if [[ "$confirm" =~ ^[yY]$ ]]; then
                 rm -rf "$BACKUP_DIR"
                 echo "✅ Tous les backups supprimés"
@@ -293,20 +303,21 @@ full_cleanup() {
     echo "  - Nettoyer toutes les configurations SSH orphelines"
     echo "  - Supprimer tous les backups"
     echo
-    read -p "Êtes-vous ABSOLUMENT sûr ? Tapez 'SUPPRIMER' pour confirmer : " confirm
+    read -r -p "Êtes-vous ABSOLUMENT sûr ? Tapez 'SUPPRIMER' pour confirmer : " confirm
 
     if [ "$confirm" = "SUPPRIMER" ]; then
         backup_hosts
 
         # Supprimer toutes les VMs
-        local all_vms=$(multipass list --format csv | awk -F',' 'NR>1 {print $1}')
+        local all_vms
+        all_vms=$(multipass list --format csv | awk -F',' 'NR>1 {print $1}')
         if [ -n "$all_vms" ]; then
             echo "🛑 Arrêt de toutes les VMs..."
             multipass stop --all 2>/dev/null || true
             echo "🗑️ Suppression de toutes les VMs..."
-            for vm in $all_vms; do
+            while IFS= read -r vm; do
                 multipass delete "$vm" 2>/dev/null || true
-            done
+            done <<< "$all_vms"
             multipass purge
         fi
 
@@ -322,12 +333,13 @@ full_cleanup() {
             cp "$ssh_config" "$ssh_config.full-cleanup-backup.$(date '+%Y-%m-%d-%Hh%M')"
 
             # Supprimer tous les hosts sans domaine (potentiellement des VMs)
-            local hosts_to_remove=$(grep "^Host " "$ssh_config" | awk '{print $2}' | grep -v "\*" | grep -v "\.")
-            for host in $hosts_to_remove; do
+            local hosts_to_remove
+            hosts_to_remove=$(grep "^Host " "$ssh_config" | awk '{print $2}' | grep -v "\*" | grep -v "\.")
+            while IFS= read -r host; do
                 if [[ "$host" != "localhost" ]]; then
                     sed -i "/^Host $host$/,/^$/d" "$ssh_config"
                 fi
-            done
+            done <<< "$hosts_to_remove"
         fi
 
         # Supprimer les backups
@@ -344,7 +356,7 @@ main() {
     while true; do
         echo
         show_menu
-        read -p "➡️ Votre choix : " choice
+        read -r -p "➡️ Votre choix : " choice
         echo
 
         case $choice in
@@ -364,7 +376,7 @@ main() {
                 ;;
         esac
 
-        read -p "Appuyez sur ENTER pour continuer..."
+        read -r -p "Appuyez sur ENTER pour continuer..."
     done
 }
 
