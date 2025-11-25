@@ -62,19 +62,40 @@ Ce dépôt sert de **collection centralisée** et **référence** pour :
 - Outils spécifiques selon le script (Multipass, Git, etc.)
 - Accès sudo pour certaines opérations
 
-### Installation
+### Installation - Vue d'ensemble
+
+**1. [Premiers Pas - Configuration Initiale](./FIRST-STEPS.md)** (À lire en PREMIER)
+   - Configuration AZERTY pour clavier français
+   - Clonage du dépôt
+   - Configuration initiale Ubuntu VirtualBox
+
+**2. [Installation LAMP](./core/tools/LAMP-INSTALLATION-GUIDE.md)**
+   - Installation Apache2, MariaDB, PHP-FPM
+   - Configuration par environnement (dev/test/prod)
+   - Configuration phpMyAdmin avec credentials superadmin/superpass
+
+### Installation Rapide (si déjà cloné)
 
 ```bash
-# Cloner le dépôt
-git clone <repo-url> scripts-bash
+# Naviguer au répertoire du projet
 cd scripts-bash
 
 # Rendre les scripts exécutables
-chmod +x **/*.sh
+chmod +x bin/vm
+chmod +x core/tools/*.sh
+chmod +x core/lib/*.sh
 
-# Utiliser directement dans le dossier approprié
-cd "Creation VM Multipass - LAMP"
-./create_webvm.sh
+# Afficher les commandes disponibles
+./bin/vm help
+
+# Installer LAMP Stack
+./bin/vm setup lamp development
+
+# Installer Node.js
+./bin/vm setup nodejs
+
+# Installer Python
+./bin/vm setup python
 ```
 
 ---
