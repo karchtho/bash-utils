@@ -87,7 +87,12 @@ COMMANDS:
 
   setup-git-ssh               Setup SSH keys and Git configuration
 
-  setup-eslint [directory]    Configure ESLint for React projects (Phase 6)
+  setup-eslint [directory]    Configure ESLint for React projects
+    [directory]               Project directory (default: current)
+
+  generate-component <name>   Generate React functional component
+  generate-hook <name>        Generate custom React hook
+  generate-context <name>     Generate React context provider
 
   help                        Show this help message
 
@@ -453,6 +458,77 @@ cmd_setup_git_ssh() {
     setup_git_ssh_complete
 }
 
+# Setup ESLint command
+cmd_setup_eslint() {
+    local project_dir=${1:-.}
+
+    # Source ESLint setup
+    source "$PROJECT_ROOT/core/react/eslint-setup.sh" || {
+        print_error "Failed to load ESLint setup"
+        return 1
+    }
+
+    # Run ESLint setup
+    setup_eslint "$project_dir"
+}
+
+# Generate React component command
+cmd_generate_component() {
+    local component_name=${1:-}
+
+    if [[ -z "$component_name" ]]; then
+        print_error "Component name required"
+        return 1
+    fi
+
+    # Source component generator
+    source "$PROJECT_ROOT/core/react/component-generator.sh" || {
+        print_error "Failed to load component generator"
+        return 1
+    }
+
+    # Generate component
+    generate_component "$component_name" "./src/components"
+}
+
+# Generate React hook command
+cmd_generate_hook() {
+    local hook_name=${1:-}
+
+    if [[ -z "$hook_name" ]]; then
+        print_error "Hook name required"
+        return 1
+    fi
+
+    # Source component generator
+    source "$PROJECT_ROOT/core/react/component-generator.sh" || {
+        print_error "Failed to load component generator"
+        return 1
+    }
+
+    # Generate hook
+    generate_hook "$hook_name" "./src/hooks"
+}
+
+# Generate React context command
+cmd_generate_context() {
+    local context_name=${1:-}
+
+    if [[ -z "$context_name" ]]; then
+        print_error "Context name required"
+        return 1
+    fi
+
+    # Source component generator
+    source "$PROJECT_ROOT/core/react/component-generator.sh" || {
+        print_error "Failed to load component generator"
+        return 1
+    }
+
+    # Generate context
+    generate_context "$context_name" "./src/contexts"
+}
+
 # Diagnostic command
 cmd_diagnostic() {
     print_section "System Diagnostic Information"
@@ -539,7 +615,7 @@ main() {
 
     # Parse global options that appear after command
     case "$command" in
-        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-shell|setup-git-ssh|setup-eslint)
+        create|start|stop|delete|list|connect|mount|cleanup|diagnostic|setup|setup-shell|setup-git-ssh|setup-eslint|generate-component|generate-hook|generate-context)
             shift || true
             # Check for global options mixed with command arguments
             while [[ $# -gt 0 ]]; do
@@ -600,8 +676,16 @@ main() {
                     cmd_setup_git_ssh "$@"
                     ;;
                 setup-eslint)
-                    print_warning "setup-eslint: Not yet implemented (Phase 6)"
-                    return 1
+                    cmd_setup_eslint "$@"
+                    ;;
+                generate-component)
+                    cmd_generate_component "$@"
+                    ;;
+                generate-hook)
+                    cmd_generate_hook "$@"
+                    ;;
+                generate-context)
+                    cmd_generate_context "$@"
                     ;;
             esac
             ;;
