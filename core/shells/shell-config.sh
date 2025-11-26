@@ -3,17 +3,18 @@
 # Sets up Zsh with Powerlevel10k, aliases, and environment variables
 
 # Source required libraries
-if [[ -z "${SCRIPT_DIR:-}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -z "${PROJECT_ROOT:-}" ]]; then
+    # Get project root: from core/shells/ go up two levels
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi
-source "$SCRIPT_DIR/core/lib/colors.sh"
-source "$SCRIPT_DIR/core/lib/error-handler.sh"
-source "$SCRIPT_DIR/core/lib/validation.sh"
-source "$SCRIPT_DIR/core/lib/common.sh"
+source "$PROJECT_ROOT/core/lib/colors.sh"
+source "$PROJECT_ROOT/core/lib/error-handler.sh"
+source "$PROJECT_ROOT/core/lib/validation.sh"
+source "$PROJECT_ROOT/core/lib/common.sh"
 
 # Source shell installers
-source "$SCRIPT_DIR/core/shells/zsh-installer.sh"
-source "$SCRIPT_DIR/core/shells/powerlevel10k-installer.sh"
+source "$PROJECT_ROOT/core/shells/zsh-installer.sh"
+source "$PROJECT_ROOT/core/shells/powerlevel10k-installer.sh"
 
 # Setup shell environment
 setup_shell_environment() {

@@ -3,13 +3,13 @@
 # Installs Python3 with virtual environment support
 
 # Source required libraries
-if [[ -z "${SCRIPT_DIR:-}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -z "${PROJECT_ROOT:-}" ]]; then
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi
-source "$SCRIPT_DIR/core/lib/colors.sh"
-source "$SCRIPT_DIR/core/lib/error-handler.sh"
-source "$SCRIPT_DIR/core/lib/validation.sh"
-source "$SCRIPT_DIR/core/lib/common.sh"
+source "$PROJECT_ROOT/core/lib/colors.sh"
+source "$PROJECT_ROOT/core/lib/error-handler.sh"
+source "$PROJECT_ROOT/core/lib/validation.sh"
+source "$PROJECT_ROOT/core/lib/common.sh"
 
 # Install Python with venv
 install_python() {

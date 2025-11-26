@@ -3,18 +3,18 @@
 # Complete setup for SSH keys, Git configuration, and remote synchronization
 
 # Source required libraries
-if [[ -z "${SCRIPT_DIR:-}" ]]; then
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if [[ -z "${PROJECT_ROOT:-}" ]]; then
+    PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 fi
-source "$SCRIPT_DIR/core/lib/colors.sh"
-source "$SCRIPT_DIR/core/lib/error-handler.sh"
-source "$SCRIPT_DIR/core/lib/validation.sh"
-source "$SCRIPT_DIR/core/lib/common.sh"
+source "$PROJECT_ROOT/core/lib/colors.sh"
+source "$PROJECT_ROOT/core/lib/error-handler.sh"
+source "$PROJECT_ROOT/core/lib/validation.sh"
+source "$PROJECT_ROOT/core/lib/common.sh"
 
 # Source security components
-source "$SCRIPT_DIR/core/security/ssh-keys.sh"
-source "$SCRIPT_DIR/core/security/git-config.sh"
-source "$SCRIPT_DIR/core/sync/file-sync.sh"
+source "$PROJECT_ROOT/core/security/ssh-keys.sh"
+source "$PROJECT_ROOT/core/security/git-config.sh"
+source "$PROJECT_ROOT/core/sync/file-sync.sh"
 
 # Complete setup flow
 setup_git_ssh_complete() {

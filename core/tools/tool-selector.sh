@@ -4,19 +4,19 @@
 
 # Source required libraries
 # Calculate base directory from this script location
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 
-source "${SCRIPT_DIR}/core/lib/colors.sh"
-source "${SCRIPT_DIR}/core/lib/error-handler.sh"
-source "${SCRIPT_DIR}/core/lib/validation.sh"
-source "${SCRIPT_DIR}/core/lib/common.sh"
+source "${PROJECT_ROOT}/core/lib/colors.sh"
+source "${PROJECT_ROOT}/core/lib/error-handler.sh"
+source "${PROJECT_ROOT}/core/lib/validation.sh"
+source "${PROJECT_ROOT}/core/lib/common.sh"
 
 # Source tool installers
-source "${SCRIPT_DIR}/core/tools/lamp-installer.sh"
-source "${SCRIPT_DIR}/core/tools/nodejs-installer.sh"
-source "${SCRIPT_DIR}/core/tools/python-installer.sh"
-source "${SCRIPT_DIR}/core/tools/angular-installer.sh"
-source "${SCRIPT_DIR}/core/tools/bat-installer.sh"
+source "${PROJECT_ROOT}/core/tools/lamp-installer.sh"
+source "${PROJECT_ROOT}/core/tools/nodejs-installer.sh"
+source "${PROJECT_ROOT}/core/tools/python-installer.sh"
+source "${PROJECT_ROOT}/core/tools/angular-installer.sh"
+source "${PROJECT_ROOT}/core/tools/bat-installer.sh"
 
 # Tool definitions
 declare -A TOOLS=(
