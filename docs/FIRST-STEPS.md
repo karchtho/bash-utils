@@ -1,10 +1,21 @@
-# First Steps: Fresh Ubuntu VirtualBox Setup
+# First Steps: Fresh Ubuntu Setup
 
-This guide walks through the initial setup of a fresh Ubuntu VirtualBox VM, including keyboard configuration and repository cloning.
+This guide covers **manual VirtualBox VM setup**. If you want automated VM creation, use `vm create` instead ([see VM_SYSTEM_README.md](./VM_SYSTEM_README.md)).
 
 ---
 
-## 1. Create VirtualBox VM
+## Overview
+
+**Two ways to get started:**
+
+1. **Automated VM** (recommended): Use `vm create` to automatically provision a VM
+2. **Manual VirtualBox** (this guide): Step-by-step manual VM setup
+
+This guide is for **Option 2: Manual VirtualBox setup**.
+
+---
+
+## 1. Create VirtualBox VM (Manual)
 
 ### Create New Virtual Machine
 
@@ -400,18 +411,31 @@ This allows rollback if something goes wrong during tool installation.
 
 ## 12. Next Steps
 
-Once the above is complete:
+**Recommended: Install shell tools first** (makes `vm` command available globally):
 
-1. **Install LAMP Stack**: `./bin/vm setup lamp development`
-2. **Install Node.js**: `./bin/vm setup nodejs`
-3. **Install Python**: `./bin/vm setup python`
-4. **Configure Shell**: `./bin/vm setup shell` (zsh, powerlevel10k, bat)
-5. **Setup Git/SSH**: `./bin/vm setup git-ssh`
-6. **Install Development Tools**: `./bin/vm setup eslin`
+```bash
+./bin/vm setup shell
+# Follow prompts to add to PATH
+source ~/.zshrc  # or source ~/.bashrc
+```
 
-Or reference specific installation guides:
-- [LAMP Installation Guide](./core/tools/LAMP-INSTALLATION-GUIDE.md)
-- [Main README](./README.md)
+**After shell setup**, use `vm` instead of `./bin/vm`:
+
+```bash
+# Now you can use these commands (pick what you need):
+sudo vm setup lamp development  # LAMP Stack
+vm setup nodejs                 # Node.js
+vm setup python                 # Python
+vm setup git-ssh                # Git + SSH
+vm setup eslint                 # ESLint for React
+```
+
+**Installation is modular** - install only what your project needs.
+
+For more details, see:
+- [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md) - Complete workflow
+- [LAMP Installation Guide](../core/tools/LAMP-INSTALLATION-GUIDE.md) - LAMP details
+- [Main README](../README.md) - Project overview
 
 ---
 
@@ -489,27 +513,22 @@ sudo nano /etc/apt/sources.list
 
 ## Common Commands After Setup
 
+**Before shell setup** (use `./bin/vm`):
 ```bash
-# View available commands
-./bin/vm help
+./bin/vm --version              # Check version
+./bin/vm help                   # View all commands
+./bin/vm setup shell            # Install shell (do this first!)
+```
 
-# Install LAMP (web development)
-./bin/vm setup lamp development
-
-# Install Node.js
-./bin/vm setup nodejs
-
-# Install Python
-./bin/vm setup python
-
-# Configure shell (zsh + powerlevel10k)
-./bin/vm setup shell
-
-# View VM status
-./bin/vm diagnose
-
-# Check for updates
-./bin/update check
+**After shell setup** (use `vm`):
+```bash
+vm help                         # View all commands
+vm diagnostic                   # System diagnostics
+sudo vm setup lamp development  # Install LAMP
+vm setup nodejs                 # Install Node.js
+vm setup python                 # Install Python
+vm setup git-ssh                # Setup Git + SSH
+vm update                       # Check for updates
 ```
 
 ---
@@ -543,7 +562,10 @@ uptime
 
 **You are now ready to proceed with installing development tools!**
 
-Next: [Install LAMP Stack](./core/tools/LAMP-INSTALLATION-GUIDE.md)
+**Next Steps:**
+1. [Install shell tools](./INSTALLATION-WORKFLOW.md#step-2-install-shell-tools-recommended-first) (recommended first)
+2. [Install LAMP Stack](../core/tools/LAMP-INSTALLATION-GUIDE.md) (if doing web dev)
+3. [Complete Workflow Guide](./INSTALLATION-WORKFLOW.md) (see all options)
 
 ---
 

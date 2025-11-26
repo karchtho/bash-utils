@@ -7,18 +7,20 @@ Guide complet pour installer et configurer une stack LAMP (Linux, Apache2, Maria
 ## Démarrage Rapide
 
 ```bash
-# Sur un serveur Ubuntu frais
+# Sur un serveur Ubuntu frais (après avoir installé le shell)
 cd ~/projects/scripts-bash
 
 # Installer LAMP Stack avec environnement développement
-./bin/vm setup lamp development
+sudo vm setup lamp development
 
 # Ou avec environnement de test
-./bin/vm setup lamp test
+sudo vm setup lamp test
 
 # Ou avec environnement production
-./bin/vm setup lamp production
+sudo vm setup lamp production
 ```
+
+**Note**: Utilisez `vm` après avoir exécuté `vm setup shell`. Sinon, utilisez `./bin/vm`.
 
 ---
 
@@ -67,7 +69,7 @@ Sélectionnez l'environnement adapté à votre cas d'usage :
 
 #### Environnement Développement
 ```bash
-./bin/vm setup lamp development
+sudo vm setup lamp development
 ```
 
 **Configuration** :
@@ -82,7 +84,7 @@ Sélectionnez l'environnement adapté à votre cas d'usage :
 
 #### Environnement Test
 ```bash
-./bin/vm setup lamp test
+sudo vm setup lamp test
 ```
 
 **Configuration** :
@@ -97,7 +99,7 @@ Sélectionnez l'environnement adapté à votre cas d'usage :
 
 #### Environnement Production
 ```bash
-./bin/vm setup lamp production
+sudo vm setup lamp production
 ```
 
 **Configuration** :
@@ -465,7 +467,7 @@ Si vous avez besoin de passer du développement à la production:
 
 ```bash
 # Reconfigurer pour la production
-sudo ./bin/vm setup lamp production
+sudo vm setup lamp production
 
 # Cela re-exécutera les fonctions de configuration spécifiques à l'environnement
 ```

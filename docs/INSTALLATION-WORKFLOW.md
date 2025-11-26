@@ -1,36 +1,69 @@
-# Installation Workflow: From Fresh VM to Full Setup
+# Installation Workflow: Development Environment Setup
 
-Complete step-by-step workflow for setting up a development environment from a fresh Ubuntu VirtualBox VM.
+Complete guide for setting up a development environment - either on an automated VM or a manually-created VirtualBox VM.
 
 ---
 
 ## Overview
 
-This guide walks through the complete installation process in the correct order:
+**Two approaches to use this project:**
 
-1. **Initial VM Setup** (FIRST-STEPS.md)
-2. **LAMP Stack Installation** (LAMP-INSTALLATION-GUIDE.md)
-3. **Optional: Additional Tools**
+1. **Automated VM Creation** - Use `vm create` to automatically provision a VM (Multipass/VirtualBox)
+2. **Manual VirtualBox Setup** - Step-by-step manual VirtualBox VM configuration
+
+Both approaches lead to the same modular tool installation - pick only what you need (LAMP, Node.js, Python, etc.).
 
 ---
 
-## Phase 1: Initial Ubuntu VirtualBox Setup
+## Approach 1: Automated VM Creation (Recommended)
+
+If you're on Ubuntu/Linux and want an automated VM:
+
+```bash
+# Clone repository
+git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+cd scripts-bash
+chmod +x bin/vm core/**/*.sh
+
+# Create VM automatically (auto-detects Multipass or VirtualBox)
+./bin/vm create dev-vm --cpus 4 --memory 4096 --disk 20
+
+# Connect to your VM
+./bin/vm connect dev-vm
+
+# Inside VM: Install shell and tools
+./bin/vm setup shell          # Setup shell + add to PATH
+# Reload shell
+sudo vm setup lamp development  # Or any tools you need
+vm setup git-ssh
+```
+
+**Duration**: ~15 minutes total
+
+---
+
+## Approach 2: Manual VirtualBox VM Setup
+
+If you're manually creating a VirtualBox VM or using an existing Ubuntu system:
+
+---
+
+### Step 1: Initial Ubuntu VirtualBox Setup
 
 **Reference**: [FIRST-STEPS.md](./FIRST-STEPS.md)
 
-### What This Phase Covers
-- Creating a fresh VirtualBox VM with Ubuntu
-- Configuring AZERTY French keyboard layout
-- Updating system packages
-- Cloning the scripts repository
-- Setting up initial configuration
+**What you'll do:**
+- Create a fresh VirtualBox VM with Ubuntu (or use existing Ubuntu system)
+- Configure keyboard layout if needed (AZERTY French keyboard)
+- Update system packages
+- Clone the scripts repository
 
-### Step-by-Step
+**Steps:**
 
 ```bash
-# 1. After Ubuntu is installed, configure keyboard
+# 1. After Ubuntu is installed, configure keyboard (if needed)
 sudo dpkg-reconfigure keyboard-configuration
-# Choose: French → French (AZERTY)
+# Choose: French → French (AZERTY), or your layout
 
 # 2. Update system
 sudo apt-get update && sudo apt-get upgrade -y
@@ -45,93 +78,162 @@ git clone https://github.com/YOUR_USERNAME/scripts-bash.git
 cd scripts-bash
 
 # 5. Make scripts executable
-chmod +x bin/vm
-chmod +x core/tools/*.sh
-chmod +x core/lib/*.sh
+chmod +x bin/vm core/**/*.sh
 
 # 6. Verify installation
 ./bin/vm --version
-# Should display: Version 1.0.0
+# Should display version number
 ```
 
-### Expected Result
-- AZERTY keyboard working correctly
-- Repository cloned and scripts executable
-- `./bin/vm --version` displays version
-- `./bin/vm help` shows available commands
+**Duration**: ~15-20 minutes
 
 ---
 
-## Phase 2: LAMP Stack Installation
+### Step 2: Install Shell Tools (Recommended First)
 
-**Reference**: [LAMP-INSTALLATION-GUIDE.md](./core/tools/LAMP-INSTALLATION-GUIDE.md)
+**Makes `vm` command available globally** - do this before anything else.
 
-### What This Phase Covers
-- Apache2 installation with PHP-FPM support
-- MariaDB/MySQL database server
-- PHP 8.x with required extensions
-- phpMyAdmin installation
-- Environment-specific configuration
-
-### Choose Your Environment
-
-#### For Development (Most Common)
 ```bash
-# Full error output, debugging support
-sudo ./bin/vm setup lamp development
+# Install shell improvements + add to PATH
+./bin/vm setup shell
+
+# Follow prompts to add to PATH
+# Then reload your shell
+source ~/.zshrc  # or source ~/.bashrc
 ```
 
-**Best for**:
-- Local development
-- Learning and experimentation
-- Debugging applications
+**After this step**, you can use `vm` instead of `./bin/vm` everywhere.
+
+**Duration**: ~3-5 minutes
+
+---
+
+### Step 3: Install What You Need (Modular)
+
+Now install only the tools your project requires. All installations are **optional and independent**.
+
+#### Option A: LAMP Stack (Web Development)
+
+**Reference**: [LAMP-INSTALLATION-GUIDE.md](../core/tools/LAMP-INSTALLATION-GUIDE.md)
+
+Install Apache, MySQL, PHP, and phpMyAdmin:
+
+```bash
+# Development environment (recommended for learning/local dev)
+sudo vm setup lamp development
+
+# Test environment (for CI/CD)
+sudo vm setup lamp test
+
+# Production environment (for live servers)
+sudo vm setup lamp production
+```
 
 **Includes**:
-- Error display on screen
-- Query logging
-- Xdebug support
+- Apache2 with PHP-FPM
+- MariaDB/MySQL database
+- PHP 8.x with extensions
+- phpMyAdmin web interface
+- Environment-specific configuration
 
-#### For Testing
-```bash
-# Optimized for automated tests
-sudo ./bin/vm setup lamp test
-```
+**Duration**: ~10-15 minutes
 
-**Best for**:
-- CI/CD pipelines
-- Automated testing
-- Staging environments
-
-#### For Production
-```bash
-# Security and performance optimized
-sudo ./bin/vm setup lamp production
-```
-
-**Best for**:
-- Live servers
-- Public applications
-- Performance-critical systems
-
-### Installation Steps
+#### Option B: Node.js (JavaScript/TypeScript Development)
 
 ```bash
-# 1. Run the installer (choose one)
-sudo ./bin/vm setup lamp development
-
-# 2. Wait for installation to complete (5-10 minutes)
-# Installation will display progress and final summary
-
-# 3. Note the displayed credentials
-# Database User: superadmin
-# Database Password: superpass
-# phpMyAdmin URL: http://localhost/phpmyadmin
-
-# 4. Create snapshot (optional but recommended)
-# VirtualBox → Right-click VM → Snapshots → Take Snapshot
+vm setup nodejs
 ```
 
-### Verify Installation
+**Includes**: Node.js + npm
+
+**Duration**: ~3-5 minutes
+
+#### Option C: Python (Python Development)
+
+```bash
+vm setup python
+```
+
+**Includes**: Python 3 + venv support
+
+**Duration**: ~2-3 minutes
+
+#### Option D: Multiple Tools at Once
+
+```bash
+# Install several tools together
+vm setup nodejs python
+vm setup nodejs eslint
+```
+
+#### Option E: Git and SSH
+
+```bash
+vm setup git-ssh
+```
+
+**Includes**:
+- SSH ed25519 key generation
+- Git user configuration
+- SSH config for remote development
+
+**Duration**: ~2-3 minutes
+
+---
+
+### Common Installation Combinations
+
+**PHP Web Development:**
+```bash
+./bin/vm setup shell          # First: enable vm command
+source ~/.zshrc
+sudo vm setup lamp development
+vm setup git-ssh
+```
+
+**Full Stack (PHP + Node.js):**
+```bash
+./bin/vm setup shell
+source ~/.zshrc
+sudo vm setup lamp development
+vm setup nodejs eslint git-ssh
+```
+
+**Node.js Only (No LAMP):**
+```bash
+./bin/vm setup shell
+source ~/.zshrc
+vm setup nodejs git-ssh
+```
+
+**Python Only:**
+```bash
+./bin/vm setup shell
+source ~/.zshrc
+vm setup python git-ssh
+```
+
+---
+
+### Step 4: VSCode Remote-SSH (Optional)
+
+If you want to edit code on your VM from Windows/macOS/Linux host:
+
+**Reference**: [VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md)
+
+**Quick setup:**
+1. Run `vm setup git-ssh` (creates SSH config)
+2. Install VSCode Remote-SSH extension on host
+3. Connect via Remote Explorer
+4. Edit files remotely!
+
+**Works on**: Windows 10/11, macOS, Linux
+
+---
+
+## Verify Your Installation
+
+### Check LAMP Services (if installed)
 
 ```bash
 # Check services are running
@@ -139,140 +241,57 @@ sudo systemctl status apache2
 sudo systemctl status mysql
 sudo systemctl status php*-fpm
 
-# Test PHP processing
-curl http://localhost/test.php
-
 # Test database connection
 mysql -u superadmin -psuperpass -e "SELECT VERSION();"
 
-# Access phpMyAdmin
-# Open browser: http://localhost/phpmyadmin
+# Access phpMyAdmin: http://localhost/phpmyadmin
 # Login: superadmin / superpass
 ```
 
-### Expected Result
+### Check Node.js (if installed)
 
+```bash
+node --version
+npm --version
 ```
-LAMP Stack Installation Complete
-─────────────────────────────────
-Service Status:
-  Apache2:  active (running)
-  MySQL:    active (running)
-  PHP-FPM:  active (running)
 
-Database Access:
-  User:     superadmin
-  Password: superpass
+### Check Python (if installed)
 
-phpMyAdmin:
-  URL:      http://localhost/phpmyadmin
-  User:     superadmin
-  Password: superpass
+```bash
+python3 --version
+```
+
+### Check Git/SSH (if installed)
+
+```bash
+git config --global --list
+ls ~/.ssh/id_ed25519*
 ```
 
 ---
 
-## Phase 3: Optional Additional Tools
+## Estimated Time
 
-After LAMP is installed, you can add:
+| Task | Duration |
+|------|----------|
+| **Automated VM Creation** | ~5-10 minutes |
+| **Manual VM Setup** | ~15-20 minutes |
+| **Shell Setup** | ~3-5 minutes |
+| **LAMP Installation** | ~10-15 minutes |
+| **Node.js Installation** | ~3-5 minutes |
+| **Python Installation** | ~2-3 minutes |
+| **Git/SSH Setup** | ~2-3 minutes |
 
-### Node.js
-```bash
-./bin/vm setup nodejs
-```
-Use for: JavaScript/TypeScript development, npm packages
-
-### Python
-```bash
-./bin/vm setup python
-```
-Use for: Python development, data science, automation
-
-### Shell Improvements
-```bash
-./bin/vm setup shell
-```
-Installs: zsh, powerlevel10k, better colors, aliases
-
-### Git/SSH Configuration
-```bash
-./bin/vm setup git-ssh
-```
-Sets up: SSH keys, GitHub/GitLab integration, git aliases
-
-### ESLint for React
-```bash
-./bin/vm setup eslint
-```
-Use for: React development, code quality
+**Total for full manual setup**: 30-45 minutes (depending on what you install)
+**Total for automated VM + tools**: 20-30 minutes
 
 ---
 
-## Phase 4: VSCode Remote-SSH Configuration (Optional)
+## Troubleshooting
 
-After completing phases 1-3, configure VSCode to connect and develop on your VM:
+### Initial Setup Issues
 
-### Why Use Remote-SSH?
-- **Edit code directly** on VM from your host VSCode
-- **Run commands** on VM from integrated terminal
-- **Debug applications** running on the VM
-- **Access tools** installed on VM (PHP, Node, Python, etc.)
-- **Works on Windows, macOS, and Linux**
-
-### Quick Setup
-
-1. **Install** Remote - SSH extension in VSCode
-2. **SSH config** already created in Phase 3 (`vm setup git-ssh`)
-3. **Connect** using VSCode Remote Explorer
-4. **Start developing** immediately!
-
-### Platform Notes
-
-- **Windows 10/11**: Uses built-in OpenSSH (or Git Bash)
-- **macOS**: SSH included, just needs configuration
-- **Linux**: SSH included, just needs configuration
-
-### Complete Reference
-
-See **[VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md)** for:
-- Detailed setup for Windows, macOS, Linux
-- Troubleshooting guide
-- Advanced configuration options
-- Performance optimization tips
-- Port forwarding for web development
-
----
-
-## Complete Timeline
-
-### First Boot
-```
-1. Boot VM, configure keyboard (5 min)
-2. Update system (5-10 min)
-3. Clone repository (2 min)
-```
-**Total**: ~20 minutes
-
-### LAMP Installation
-```
-1. Run installer (5-10 min)
-2. Verify installation (2 min)
-3. Create snapshot (1 min)
-```
-**Total**: ~10-15 minutes
-
-### Optional Tools
-```
-Each tool takes 2-5 minutes depending on size
-```
-
----
-
-## Troubleshooting by Phase
-
-### Phase 1: Initial Setup Issues
-
-**Problem**: Can't type accented characters (AZERTY not working)
+**Problem**: Keyboard layout not working
 ```bash
 sudo dpkg-reconfigure keyboard-configuration
 ```
@@ -284,18 +303,15 @@ ping 8.8.8.8
 
 # Check git is installed
 git --version
-
-# Try with ssh (if keys configured)
-git clone ssh://git@github.com:USERNAME/scripts-bash.git
 ```
 
 **Problem**: Scripts not executable
 ```bash
-chmod +x bin/vm core/tools/*.sh core/lib/*.sh
+chmod +x bin/vm core/**/*.sh
 ./bin/vm --version  # Should work now
 ```
 
-### Phase 2: LAMP Installation Issues
+### LAMP Installation Issues
 
 **Problem**: Apache won't start
 ```bash
@@ -391,61 +407,74 @@ EOF
 
 ---
 
-## Documentation Structure
+## Documentation References
 
-| Document | Purpose | When to Read |
-|----------|---------|--------------|
-| [FIRST-STEPS.md](./FIRST-STEPS.md) | Initial VM setup, keyboard, cloning | **First** - before doing anything |
-| [LAMP-INSTALLATION-GUIDE.md](./core/tools/LAMP-INSTALLATION-GUIDE.md) | LAMP stack detailed guide | After first steps complete |
-| [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md) | This document - complete workflow | Reference during setup |
-| [README.md](./README.md) | Project overview | For general understanding |
-| [VALIDATION.md](./VALIDATION.md) | Code quality report | For technical details |
+| Document | Purpose |
+|----------|---------|
+| [README.md](../README.md) | Project overview and quick start |
+| [VM_SYSTEM_README.md](./VM_SYSTEM_README.md) | VM management with `vm create` |
+| [FIRST-STEPS.md](./FIRST-STEPS.md) | Manual VirtualBox VM initial setup |
+| [LAMP-INSTALLATION-GUIDE.md](../core/tools/LAMP-INSTALLATION-GUIDE.md) | LAMP stack detailed guide |
+| [VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md) | Remote development setup |
+| [VALIDATION.md](./VALIDATION.md) | Code quality report |
 
 ---
 
-## Quick Reference: Commands by Phase
+## Quick Reference Commands
 
-### Phase 1: Initial Setup
+### Automated VM Creation
 ```bash
-sudo dpkg-reconfigure keyboard-configuration  # Keyboard
-sudo apt-get update && sudo apt-get upgrade -y  # Update system
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git  # Clone repo
-chmod +x scripts-bash/bin/vm  # Make executable
-./scripts-bash/bin/vm --version  # Verify
+vm create dev-vm --cpus 4 --memory 4096 --disk 20
+vm connect dev-vm
 ```
 
-### Phase 2: LAMP Installation
+### Manual Setup
 ```bash
-cd ~/projects/scripts-bash
-sudo ./bin/vm setup lamp development  # Install LAMP
-mysql -u superadmin -psuperpass -e "SELECT 1;"  # Verify
-curl http://localhost/  # Check Apache
-# Visit http://localhost/phpmyadmin in browser  # Check phpMyAdmin
+# Clone and setup
+git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+cd scripts-bash
+chmod +x bin/vm core/**/*.sh
+
+# Install shell (do this first!)
+./bin/vm setup shell
+source ~/.zshrc
 ```
 
-### Phase 3: Optional Tools
+### Install Tools (modular - pick what you need)
 ```bash
-./bin/vm setup nodejs    # Install Node.js
-./bin/vm setup python    # Install Python
-./bin/vm setup shell     # Install zsh + powerlevel10k
-./bin/vm setup git-ssh   # Setup Git/SSH
+sudo vm setup lamp development    # Web dev
+vm setup nodejs                   # JavaScript
+vm setup python                   # Python
+vm setup git-ssh                  # Git + SSH
+vm setup eslint                   # React linting
+```
+
+### Verify
+```bash
+vm diagnostic                          # System info
+sudo systemctl status apache2 mysql    # LAMP services
+node --version                         # Node.js
+python3 --version                      # Python
 ```
 
 ---
 
 ## Summary
 
-This workflow takes you from a blank Ubuntu VirtualBox VM to a fully functional development environment with:
+This workflow provides **two paths** to a development environment:
 
-- ✅ AZERTY keyboard support
-- ✅ Git and development tools
-- ✅ Apache2 web server with PHP-FPM
-- ✅ MariaDB/MySQL database
-- ✅ phpMyAdmin for database management
-- ✅ Environment-specific configuration (dev/test/prod)
-- ✅ Hardcoded superadmin/superpass credentials for development
+**Automated**: `vm create` → automated VM with Ubuntu → install tools
+**Manual**: VirtualBox manual setup → clone repo → install tools
 
-**Total time**: ~30-45 minutes depending on internet speed and additional tools selected.
+**All tool installations are modular** - install only what you need:
+- ✅ LAMP Stack (Apache, MySQL, PHP, phpMyAdmin)
+- ✅ Node.js + npm
+- ✅ Python 3 + venv
+- ✅ Shell improvements (zsh, powerlevel10k)
+- ✅ Git + SSH configuration
+- ✅ ESLint for React
+
+**Time**: 20-45 minutes depending on approach and tools selected.
 
 ---
 

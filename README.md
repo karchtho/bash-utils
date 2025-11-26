@@ -1,126 +1,155 @@
 # Scripts Bash - VM Management & Development Automation
 
-A comprehensive collection of bash scripts for automating VirtualBox VM setup, LAMP stack configuration, and development tool installation with complete documentation.
+A comprehensive bash automation toolkit for VM management (Multipass, VirtualBox, Hyper-V, libvirt), LAMP stack configuration, and development environment setup.
 
 ---
 
 ## Quick Start
 
-> **New to this project?** Start here: [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md)
-
-This guide walks you from a blank Ubuntu VirtualBox VM to a fully configured development environment in 4 phases (30-45 minutes total).
+> **Two ways to use this project:**
+> - **Automated VM creation**: Use `vm create` to automatically provision VMs with Multipass/VirtualBox
+> - **Existing system/VM**: Install development tools directly on your current Ubuntu system or manually-created VM
+>
+> **Start with**: [Getting Started Guide](#getting-started)
 
 ---
 
 ## What This Project Does
 
-This is a modern replacement and enhancement of the older `creation-vm-multipass-lamp` scripts, reorganized into:
+A unified command-line toolkit for development environment automation:
 
-1. **Automated VM Setup** - Fresh Ubuntu configuration with keyboard layout, updates, and repo cloning
+1. **VM Management** - Create, manage, and configure VMs using Multipass, VirtualBox, Hyper-V, or libvirt
 2. **LAMP Stack Installation** - Apache2 + PHP-FPM + MariaDB/MySQL + phpMyAdmin with environment-specific config
 3. **Development Tools** - Node.js, Python, Shell improvements (zsh), Git/SSH setup, ESLint, and more
 4. **Remote Development** - VSCode Remote-SSH for seamless remote editing from Windows/macOS/Linux
 
 ### Key Features
 
+- ✅ **Multi-hypervisor support** (Multipass, VirtualBox, Hyper-V, libvirt - auto-detected)
 - ✅ **Multi-environment configuration** (development/test/production)
-- ✅ **Non-interactive installation** (no prompts to answer)
-- ✅ **AZERTY keyboard support** (French layout with 3 configuration methods)
+- ✅ **Modular installation** (install only what you need: LAMP, Node, Python, etc.)
 - ✅ **SSH & Git automation** (ed25519 keys, GitHub/GitLab setup)
 - ✅ **VSCode Remote-SSH** (cross-platform: Windows, macOS, Linux)
 - ✅ **Comprehensive documentation** (step-by-step guides with troubleshooting)
 
 ---
 
-## Installation Phases
+## Getting Started
 
-Follow these 4 phases in order. Each has detailed documentation:
+### Option 1: Automated VM Creation (Recommended)
 
-### Phase 1: Initial Ubuntu VirtualBox Setup + Shell Configuration
-**Duration**: ~25 minutes
-**Guide**: [FIRST-STEPS.md](./FIRST-STEPS.md)
+If you're on Ubuntu/Linux and want an automated VM:
 
-Set up the VM and make the project immediately usable:
-
-1. Create VirtualBox VM and install Ubuntu
-2. Configure AZERTY French keyboard (3 methods)
-3. Update system packages
-4. Clone this repository
-5. **Install shell tools** (zsh, powerlevel10k theme, bat)
-6. **Add project to PATH** (so you can use `vm` instead of `./bin/vm`)
-
-**Quick Command**:
 ```bash
-sudo dpkg-reconfigure keyboard-configuration  # AZERTY setup
-sudo apt-get update && sudo apt-get upgrade -y
+# Clone the repository
 git clone https://github.com/YOUR_USERNAME/scripts-bash.git
-cd scripts-bash && chmod +x bin/vm core/tools/*.sh core/lib/*.sh
+cd scripts-bash
+chmod +x bin/vm core/**/*.sh
 
-# Install shell and add to PATH
-./bin/vm setup shell
-# Follow prompts to add project to PATH, then reload shell
+# Create and launch a VM automatically (Multipass/VirtualBox auto-detected)
+./bin/vm create dev-vm --cpus 4 --memory 4096 --disk 20
+
+# List VMs
+./bin/vm list
+
+# Connect to your VM
+./bin/vm connect dev-vm
 ```
 
-**After Phase 1**, you can use:
+The `vm create` command automatically:
+- Detects available hypervisor (Multipass, VirtualBox, Hyper-V, libvirt)
+- Provisions Ubuntu VM with specified resources
+- Configures networking and SSH access
+- Sets up development environment
+
+### Option 2: Existing System or Manual VM
+
+If you already have an Ubuntu system or manually-created VM:
+
+**Step 1: Clone and setup shell** (enables `vm` command globally)
+```bash
+git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+cd scripts-bash
+chmod +x bin/vm core/**/*.sh
+
+# Install shell tools and add to PATH
+./bin/vm setup shell
+# Follow prompts, then reload shell
+```
+
+**After shell setup**, you can use `vm` globally:
 ```bash
 vm --version      # Instead of ./bin/vm --version
-vm setup lamp     # Instead of ./bin/vm setup lamp
 vm help           # Show all available commands
 ```
 
-### Phase 2: LAMP Stack Installation
-**Duration**: ~10-15 minutes
-**Guide**: [LAMP-INSTALLATION-GUIDE.md](./core/tools/LAMP-INSTALLATION-GUIDE.md)
-
-Install Apache2, MariaDB/MySQL, PHP-FPM, and phpMyAdmin with environment-specific configuration:
-
-**Development** (recommended for local work):
-```bash
-sudo vm setup lamp development
-```
-- Full error display, Xdebug support, query logging
-- Access: http://localhost/phpmyadmin (superadmin/superpass)
-
-**Test** (for CI/CD pipelines):
-```bash
-sudo vm setup lamp test
-```
-
-**Production** (for live servers):
-```bash
-sudo vm setup lamp production
-```
-
-### Phase 3: Optional Development Tools
-**Duration**: ~3-5 minutes each
-**Guide**: [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md) (Phase 3 section)
-
-Install any combination of additional tools:
+**Step 2: Install what you need** (modular - pick and choose)
 
 ```bash
-vm setup nodejs      # Node.js + npm
-vm setup python      # Python 3
-vm setup git-ssh     # SSH keys + Git config
-vm setup eslint      # ESLint for React
+# Web development? Install LAMP stack
+sudo vm setup lamp development    # Apache, MySQL, PHP, phpMyAdmin
+                                  # Or: test, production
+
+# JavaScript/Node.js development?
+vm setup nodejs                   # Node.js + npm
+
+# Python development?
+vm setup python                   # Python 3 + venv
+
+# Both? Install multiple tools
+vm setup nodejs python            # Install several at once
+
+# React development?
+vm setup eslint                   # ESLint with Airbnb style
+
+# Git and SSH?
+vm setup git-ssh                  # Generate keys, configure Git
 ```
 
-This phase also generates SSH keys and configures SSH for VSCode remote access.
+**All installations are optional and independent** - install only what your project needs.
 
-### Phase 4: VSCode Remote-SSH (Optional)
-**Duration**: ~5 minutes setup
-**Guide**: [VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md)
+### Common Workflows
 
-Connect VSCode from your host machine to edit and debug code on the VM:
+**PHP/LAMP Development:**
+```bash
+vm setup shell                    # Enable vm command globally
+sudo vm setup lamp development    # Apache + MySQL + PHP
+vm setup git-ssh                  # Git and SSH configuration
+```
 
-1. Install VSCode Remote - SSH extension
-2. SSH config already created in Phase 3
-3. Use Remote Explorer to connect
-4. Start remote development!
+**Full Stack (PHP + Node.js):**
+```bash
+vm setup shell                    # Shell improvements first
+sudo vm setup lamp development    # Backend (PHP)
+vm setup nodejs eslint            # Frontend (Node.js + linting)
+vm setup git-ssh                  # Version control
+```
 
-Works on:
-- Windows 10/11 (OpenSSH, Git Bash, or WSL2)
-- macOS (built-in SSH)
-- Linux (built-in SSH)
+**Node.js Only:**
+```bash
+vm setup shell                    # Shell improvements
+vm setup nodejs                   # Just Node.js, skip LAMP
+vm setup git-ssh                  # Version control
+```
+
+**Python Development:**
+```bash
+vm setup shell                    # Shell improvements
+vm setup python                   # Just Python, skip LAMP/Node
+vm setup git-ssh                  # Version control
+```
+
+### Remote Development with VSCode (Optional)
+
+Connect VSCode from Windows/macOS/Linux to your VM:
+
+**Guide**: [VSCODE-REMOTE-SSH.md](./docs/VSCODE-REMOTE-SSH.md)
+
+Quick setup:
+1. Run `vm setup git-ssh` (creates SSH config)
+2. Install VSCode Remote-SSH extension
+3. Connect via Remote Explorer
+4. Edit files remotely!
 
 ---
 
@@ -128,11 +157,13 @@ Works on:
 
 | Document | Purpose | When to Read |
 |----------|---------|--------------|
-| [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md) | Master orchestration guide | **START HERE** |
-| [FIRST-STEPS.md](./FIRST-STEPS.md) | Fresh VM setup with keyboard config | Phase 1 detailed reference |
-| [LAMP-INSTALLATION-GUIDE.md](./core/tools/LAMP-INSTALLATION-GUIDE.md) | LAMP stack detailed guide | Phase 2 detailed reference |
-| [VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md) | Remote development setup | Phase 4 reference |
-| [VALIDATION.md](./VALIDATION.md) | Code quality & testing report | Technical validation details |
+| [README.md](./README.md) | Project overview and quick start | **START HERE** |
+| [VM_SYSTEM_README.md](./docs/VM_SYSTEM_README.md) | Complete VM management guide | VM creation and management |
+| [INSTALLATION-WORKFLOW.md](./docs/INSTALLATION-WORKFLOW.md) | Step-by-step manual VirtualBox setup | Manual VM setup walkthrough |
+| [FIRST-STEPS.md](./docs/FIRST-STEPS.md) | Fresh Ubuntu setup guide | Manual VirtualBox VM initial setup |
+| [LAMP-INSTALLATION-GUIDE.md](./core/tools/LAMP-INSTALLATION-GUIDE.md) | LAMP stack detailed guide | LAMP installation reference |
+| [VSCODE-REMOTE-SSH.md](./docs/VSCODE-REMOTE-SSH.md) | Remote development setup | VSCode remote connection |
+| [VALIDATION.md](./docs/VALIDATION.md) | Code quality & testing report | Technical validation details |
 
 ---
 
@@ -197,7 +228,7 @@ scripts-bash/
 vm [command] [options]
 ```
 
-**Note**: After Phase 1 (`vm setup shell`), the project is added to PATH, so you can use `vm` directly instead of `./bin/vm`.
+**Note**: After running `vm setup shell`, the project is added to PATH, so you can use `vm` directly instead of `./bin/vm`.
 
 ### Available Commands
 
@@ -206,6 +237,19 @@ vm [command] [options]
 vm help                          # Show all commands
 vm --version                     # Show version
 vm --help                        # Show detailed help
+
+# VM Management (Multipass/VirtualBox/Hyper-V/libvirt)
+vm create <name> [options]       # Create new VM
+  --cpus <n>                     # Number of CPUs (default: 2)
+  --memory <size>                # Memory in MB (default: 4096)
+  --disk <size>                  # Disk in GB (default: 15)
+  --hypervisor <type>            # Force specific hypervisor
+vm list                          # List all VMs
+vm start <name>                  # Start VM
+vm stop <name>                   # Stop VM
+vm delete <name>                 # Delete VM
+vm connect <name>                # SSH into VM
+vm mount <name> <local> <vm>     # Mount directory
 
 # Setup Tools
 vm setup                         # Interactive menu
@@ -216,20 +260,24 @@ vm setup shell                   # zsh + powerlevel10k + bat
 vm setup git-ssh                 # SSH keys + Git config
 vm setup eslint                  # ESLint for React
 
+# React Development
+vm generate-component <name>     # Create React component
+vm generate-hook <name>          # Create React hook
+vm generate-context <name>       # Create React context
+
 # System Info
-vm diagnose                      # System diagnostics
-vm version                       # Show version
+vm diagnostic                    # System diagnostics
+vm cleanup                       # Clean up resources
 
 # Updates
-vm update check                  # Check for updates
-vm update auto                   # Auto-update with backup
+vm update                        # Check and install updates
 vm list-backups                  # Show available backups
 vm rollback [backup]             # Restore from backup
 ```
 
 ### If Project Not in PATH Yet
 ```bash
-# During Phase 1 before shell setup
+# Before shell setup, use full path
 ./bin/vm setup shell
 
 # After shell setup, use simple syntax
@@ -269,21 +317,40 @@ Each LAMP environment is configured differently:
 
 ## Troubleshooting
 
-### AZERTY Keyboard Not Working
-See [FIRST-STEPS.md - Troubleshooting](./FIRST-STEPS.md#troubleshooting)
+### No Hypervisor Found
+```bash
+# Install Multipass (recommended)
+sudo snap install multipass
+
+# Or VirtualBox
+sudo apt-get install virtualbox
+
+# Check what's available
+vm diagnostic
+```
+
+### VM Creation Issues
+```bash
+# Check available hypervisors
+vm diagnostic
+
+# Try specific hypervisor
+vm create my-vm --hypervisor multipass
+vm create my-vm --hypervisor virtualbox
+```
 
 ### LAMP Installation Issues
 See [LAMP-INSTALLATION-GUIDE.md - Troubleshooting](./core/tools/LAMP-INSTALLATION-GUIDE.md#troubleshooting)
 
 ### VSCode Remote-SSH Connection Issues
-See [VSCODE-REMOTE-SSH.md - Troubleshooting](./VSCODE-REMOTE-SSH.md#troubleshooting)
+See [VSCODE-REMOTE-SSH.md - Troubleshooting](./docs/VSCODE-REMOTE-SSH.md#troubleshooting)
 
 ### General Issues
 ```bash
 # Run diagnostics
-./bin/vm diagnose
+vm diagnostic
 
-# Check service status
+# Check service status (if LAMP installed)
 sudo systemctl status apache2
 sudo systemctl status mysql
 sudo systemctl status php*-fpm
@@ -298,54 +365,69 @@ tail -f /var/log/php_errors.log
 
 ## Development Workflow Examples
 
-### PHP/LAMP Development
+### Automated VM with LAMP
 ```bash
-# Phase 1: Initial setup (done first)
+# Create VM automatically (Multipass/VirtualBox auto-detected)
+vm create lamp-dev --cpus 4 --memory 4096 --disk 20
+
+# Connect to your new VM
+vm connect lamp-dev
+
+# Inside the VM: Install shell and LAMP
+./bin/vm setup shell        # Setup shell + add to PATH
+# Reload shell
+sudo vm setup lamp development
+vm setup git-ssh
+
+# From host: Connect with VSCode Remote-SSH
+# → Already SSH-ready from vm create
+```
+
+### Existing System: PHP/LAMP Development
+```bash
+# On your existing Ubuntu system/VM
 cd ~/projects/scripts-bash
 ./bin/vm setup shell        # Install zsh, powerlevel10k, bat + add to PATH
 # Reload shell to activate
 
-# Phase 2: Install LAMP
+# Install LAMP
 sudo vm setup lamp development
 
-# Phase 3: Setup Git/SSH
+# Setup Git/SSH
 vm setup git-ssh
 
-# Phase 4: Connect with VSCode
+# Connect with VSCode (if remote)
 # → Install Remote-SSH extension
-# → Connect to ubuntu-vm
+# → Connect to system
 # → Edit files in /var/www/html
-# → Run commands in terminal
 ```
 
 ### Full Stack Development (PHP + Node.js)
 ```bash
-# Phase 1: Setup shell first (enables all following commands)
+# Setup shell first (enables vm command globally)
 ./bin/vm setup shell
+# Reload shell
 
-# Phase 2: Install LAMP for PHP
+# Install everything you need
 sudo vm setup lamp development
+vm setup nodejs eslint git-ssh
 
-# Phase 3: Install additional tools
-vm setup nodejs             # Node.js + npm
-vm setup eslint             # ESLint for React
-vm setup git-ssh            # Git + SSH setup
-
-# Phase 4: Connect with VSCode Remote-SSH
+# Start developing!
 ```
 
-### Node.js Web Application
+### Node.js Only (No LAMP)
 ```bash
-# Phase 1: Setup shell first
+# Setup shell first
 ./bin/vm setup shell
+# Reload shell
 
-# Phase 3: Install Node.js
-vm setup nodejs
+# Just install Node.js, skip LAMP
+vm setup nodejs git-ssh
 
-# Run app on VM
+# Run your app
+cd ~/project
 npm start
 
-# Forward port via VSCode Remote-SSH
 # Access via http://localhost:3000
 ```
 
@@ -418,11 +500,11 @@ Contributions are welcome! Please:
 
 ## Legacy Scripts
 
-This project replaces the older scripts in:
-- `creation-vm-multipass-lamp/` - Original VM setup scripts
+This project has integrated and improved functionality from older scripts:
+- `creation-vm-multipass-lamp/` - VM creation now integrated into `vm create` command
 - `Config Projets MVC PHP/` - MVC project scaffolding
 
-These are kept for reference but the new modular approach is recommended.
+These legacy folders are kept for reference but the new unified `vm` command is recommended.
 
 ---
 
@@ -436,17 +518,18 @@ Free to use, modify, and redistribute.
 ## Support & Questions
 
 ### Getting Help
-1. Check the **detailed guide** for your phase
+1. Check the **detailed guide** for your use case
 2. Review the **troubleshooting section** in relevant guide
-3. Run `./bin/vm diagnose` for system info
+3. Run `vm diagnostic` for system info
 4. Check **log files** for error details
 
 ### Documentation by Topic
-- **Fresh VM Setup**: [FIRST-STEPS.md](./FIRST-STEPS.md)
+- **VM Management**: [VM_SYSTEM_README.md](./docs/VM_SYSTEM_README.md)
+- **Manual VirtualBox Setup**: [FIRST-STEPS.md](./docs/FIRST-STEPS.md)
 - **LAMP Stack**: [LAMP-INSTALLATION-GUIDE.md](./core/tools/LAMP-INSTALLATION-GUIDE.md)
-- **Complete Workflow**: [INSTALLATION-WORKFLOW.md](./INSTALLATION-WORKFLOW.md)
-- **Remote Development**: [VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md)
-- **Code Quality**: [VALIDATION.md](./VALIDATION.md)
+- **Complete Workflow**: [INSTALLATION-WORKFLOW.md](./docs/INSTALLATION-WORKFLOW.md)
+- **Remote Development**: [VSCODE-REMOTE-SSH.md](./docs/VSCODE-REMOTE-SSH.md)
+- **Code Quality**: [VALIDATION.md](./docs/VALIDATION.md)
 
 ---
 
