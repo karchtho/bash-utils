@@ -161,7 +161,7 @@ mkdir -p ~/projects
 cd ~/projects
 
 # Clone the scripts repository
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 
 # List contents
@@ -414,7 +414,7 @@ This allows rollback if something goes wrong during tool installation.
 **Recommended: Install shell tools first** (makes `vm` command available globally):
 
 ```bash
-./bin/vm setup shell
+./bin/vm setup-shell
 # Follow prompts to add to PATH
 source ~/.zshrc  # or source ~/.bashrc
 ```
@@ -426,8 +426,8 @@ source ~/.zshrc  # or source ~/.bashrc
 sudo vm setup lamp development  # LAMP Stack
 vm setup nodejs                 # Node.js
 vm setup python                 # Python
-vm setup git-ssh                # Git + SSH
-vm setup eslint                 # ESLint for React
+vm setup-git-ssh                # Git + SSH
+vm setup-eslint                 # ESLint for React
 ```
 
 **Installation is modular** - install only what your project needs.
@@ -517,7 +517,7 @@ sudo nano /etc/apt/sources.list
 ```bash
 ./bin/vm --version              # Check version
 ./bin/vm help                   # View all commands
-./bin/vm setup shell            # Install shell (do this first!)
+./bin/vm setup-shell            # Install shell (do this first!)
 ```
 
 **After shell setup** (use `vm`):
@@ -527,7 +527,7 @@ vm diagnostic                   # System diagnostics
 sudo vm setup lamp development  # Install LAMP
 vm setup nodejs                 # Install Node.js
 vm setup python                 # Install Python
-vm setup git-ssh                # Setup Git + SSH
+vm setup-git-ssh                # Setup Git + SSH
 vm update                       # Check for updates
 ```
 

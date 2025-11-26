@@ -26,7 +26,7 @@ Before starting, ensure you have:
 3. **SSH client**:
    - Windows 10/11: Built-in (or use Git Bash/WSL)
    - macOS/Linux: Built-in
-4. **SSH key pair generated**: Created during LAMP installation via `vm setup git-ssh`
+4. **SSH key pair generated**: Created during LAMP installation via `vm setup-git-ssh`
 
 ### On Your Ubuntu VM
 1. **SSH server running**: `sudo systemctl status ssh`
@@ -52,7 +52,7 @@ After installation, you'll see a **Remote Explorer** icon on the left sidebar.
 
 ### Check SSH Config File
 
-Your SSH configuration should have been created when you ran `vm setup git-ssh`.
+Your SSH configuration should have been created when you ran `vm setup-git-ssh`.
 
 **On macOS/Linux:**
 ```bash

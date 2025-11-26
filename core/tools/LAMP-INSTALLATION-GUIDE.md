@@ -20,7 +20,7 @@ sudo vm setup lamp test
 sudo vm setup lamp production
 ```
 
-**Note**: Utilisez `vm` après avoir exécuté `vm setup shell`. Sinon, utilisez `./bin/vm`.
+**Note**: Utilisez `vm` après avoir exécuté `vm setup-shell`. Sinon, utilisez `./bin/vm`.
 
 ---
 
@@ -59,7 +59,7 @@ sudo apt-get install -y git
 
 # Cloner le dépôt scripts-bash
 cd ~/projects
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 ```
 

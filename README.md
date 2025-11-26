@@ -42,7 +42,7 @@ If you're on Ubuntu/Linux and want an automated VM:
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 chmod +x bin/vm core/**/*.sh
 
@@ -68,12 +68,12 @@ If you already have an Ubuntu system or manually-created VM:
 
 **Step 1: Clone and setup shell** (enables `vm` command globally)
 ```bash
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 chmod +x bin/vm core/**/*.sh
 
 # Install shell tools and add to PATH
-./bin/vm setup shell
+./bin/vm setup-shell
 # Follow prompts, then reload shell
 ```
 
@@ -100,10 +100,10 @@ vm setup python                   # Python 3 + venv
 vm setup nodejs python            # Install several at once
 
 # React development?
-vm setup eslint                   # ESLint with Airbnb style
+vm setup-eslint                   # ESLint with Airbnb style
 
 # Git and SSH?
-vm setup git-ssh                  # Generate keys, configure Git
+vm setup-git-ssh                  # Generate keys, configure Git
 ```
 
 **All installations are optional and independent** - install only what your project needs.
@@ -112,31 +112,31 @@ vm setup git-ssh                  # Generate keys, configure Git
 
 **PHP/LAMP Development:**
 ```bash
-vm setup shell                    # Enable vm command globally
+vm setup-shell                    # Enable vm command globally
 sudo vm setup lamp development    # Apache + MySQL + PHP
-vm setup git-ssh                  # Git and SSH configuration
+vm setup-git-ssh                  # Git and SSH configuration
 ```
 
 **Full Stack (PHP + Node.js):**
 ```bash
-vm setup shell                    # Shell improvements first
+vm setup-shell                    # Shell improvements first
 sudo vm setup lamp development    # Backend (PHP)
 vm setup nodejs eslint            # Frontend (Node.js + linting)
-vm setup git-ssh                  # Version control
+vm setup-git-ssh                  # Version control
 ```
 
 **Node.js Only:**
 ```bash
-vm setup shell                    # Shell improvements
+vm setup-shell                    # Shell improvements
 vm setup nodejs                   # Just Node.js, skip LAMP
-vm setup git-ssh                  # Version control
+vm setup-git-ssh                  # Version control
 ```
 
 **Python Development:**
 ```bash
-vm setup shell                    # Shell improvements
+vm setup-shell                    # Shell improvements
 vm setup python                   # Just Python, skip LAMP/Node
-vm setup git-ssh                  # Version control
+vm setup-git-ssh                  # Version control
 ```
 
 ### Remote Development with VSCode (Optional)
@@ -146,7 +146,7 @@ Connect VSCode from Windows/macOS/Linux to your VM:
 **Guide**: [VSCODE-REMOTE-SSH.md](./docs/VSCODE-REMOTE-SSH.md)
 
 Quick setup:
-1. Run `vm setup git-ssh` (creates SSH config)
+1. Run `vm setup-git-ssh` (creates SSH config)
 2. Install VSCode Remote-SSH extension
 3. Connect via Remote Explorer
 4. Edit files remotely!
@@ -228,7 +228,7 @@ scripts-bash/
 vm [command] [options]
 ```
 
-**Note**: After running `vm setup shell`, the project is added to PATH, so you can use `vm` directly instead of `./bin/vm`.
+**Note**: After running `vm setup-shell`, the project is added to PATH, so you can use `vm` directly instead of `./bin/vm`.
 
 ### Available Commands
 
@@ -256,9 +256,9 @@ vm setup                         # Interactive menu
 vm setup lamp [env]              # LAMP stack (dev/test/prod)
 vm setup nodejs                  # Node.js + npm
 vm setup python                  # Python 3
-vm setup shell                   # zsh + powerlevel10k + bat
-vm setup git-ssh                 # SSH keys + Git config
-vm setup eslint                  # ESLint for React
+vm setup-shell                   # zsh + powerlevel10k + bat
+vm setup-git-ssh                 # SSH keys + Git config
+vm setup-eslint                  # ESLint for React
 
 # React Development
 vm generate-component <name>     # Create React component
@@ -278,7 +278,7 @@ vm rollback [backup]             # Restore from backup
 ### If Project Not in PATH Yet
 ```bash
 # Before shell setup, use full path
-./bin/vm setup shell
+./bin/vm setup-shell
 
 # After shell setup, use simple syntax
 vm [command]
@@ -374,10 +374,10 @@ vm create lamp-dev --cpus 4 --memory 4096 --disk 20
 vm connect lamp-dev
 
 # Inside the VM: Install shell and LAMP
-./bin/vm setup shell        # Setup shell + add to PATH
+./bin/vm setup-shell        # Setup shell + add to PATH
 # Reload shell
 sudo vm setup lamp development
-vm setup git-ssh
+vm setup-git-ssh
 
 # From host: Connect with VSCode Remote-SSH
 # → Already SSH-ready from vm create
@@ -387,14 +387,14 @@ vm setup git-ssh
 ```bash
 # On your existing Ubuntu system/VM
 cd ~/projects/scripts-bash
-./bin/vm setup shell        # Install zsh, powerlevel10k, bat + add to PATH
+./bin/vm setup-shell        # Install zsh, powerlevel10k, bat + add to PATH
 # Reload shell to activate
 
 # Install LAMP
 sudo vm setup lamp development
 
 # Setup Git/SSH
-vm setup git-ssh
+vm setup-git-ssh
 
 # Connect with VSCode (if remote)
 # → Install Remote-SSH extension
@@ -405,12 +405,13 @@ vm setup git-ssh
 ### Full Stack Development (PHP + Node.js)
 ```bash
 # Setup shell first (enables vm command globally)
-./bin/vm setup shell
+./bin/vm setup-shell
 # Reload shell
 
 # Install everything you need
 sudo vm setup lamp development
-vm setup nodejs eslint git-ssh
+vm setup nodejs eslint
+vm setup-git-ssh
 
 # Start developing!
 ```
@@ -418,11 +419,12 @@ vm setup nodejs eslint git-ssh
 ### Node.js Only (No LAMP)
 ```bash
 # Setup shell first
-./bin/vm setup shell
+./bin/vm setup-shell
 # Reload shell
 
 # Just install Node.js, skip LAMP
-vm setup nodejs git-ssh
+vm setup nodejs
+vm setup-git-ssh
 
 # Run your app
 cd ~/project

@@ -21,7 +21,7 @@ If you're on Ubuntu/Linux and want an automated VM:
 
 ```bash
 # Clone repository
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 chmod +x bin/vm core/**/*.sh
 
@@ -32,10 +32,10 @@ chmod +x bin/vm core/**/*.sh
 ./bin/vm connect dev-vm
 
 # Inside VM: Install shell and tools
-./bin/vm setup shell          # Setup shell + add to PATH
+./bin/vm setup-shell          # Setup shell + add to PATH
 # Reload shell
 sudo vm setup lamp development  # Or any tools you need
-vm setup git-ssh
+vm setup-git-ssh
 ```
 
 **Duration**: ~15 minutes total
@@ -74,7 +74,7 @@ sudo apt-get install -y git curl wget
 # 4. Clone repository
 mkdir -p ~/projects
 cd ~/projects
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 
 # 5. Make scripts executable
@@ -95,7 +95,7 @@ chmod +x bin/vm core/**/*.sh
 
 ```bash
 # Install shell improvements + add to PATH
-./bin/vm setup shell
+./bin/vm setup-shell
 
 # Follow prompts to add to PATH
 # Then reload your shell
@@ -169,7 +169,7 @@ vm setup nodejs eslint
 #### Option E: Git and SSH
 
 ```bash
-vm setup git-ssh
+vm setup-git-ssh
 ```
 
 **Includes**:
@@ -185,15 +185,15 @@ vm setup git-ssh
 
 **PHP Web Development:**
 ```bash
-./bin/vm setup shell          # First: enable vm command
+./bin/vm setup-shell          # First: enable vm command
 source ~/.zshrc
 sudo vm setup lamp development
-vm setup git-ssh
+vm setup-git-ssh
 ```
 
 **Full Stack (PHP + Node.js):**
 ```bash
-./bin/vm setup shell
+./bin/vm setup-shell
 source ~/.zshrc
 sudo vm setup lamp development
 vm setup nodejs eslint git-ssh
@@ -201,14 +201,14 @@ vm setup nodejs eslint git-ssh
 
 **Node.js Only (No LAMP):**
 ```bash
-./bin/vm setup shell
+./bin/vm setup-shell
 source ~/.zshrc
 vm setup nodejs git-ssh
 ```
 
 **Python Only:**
 ```bash
-./bin/vm setup shell
+./bin/vm setup-shell
 source ~/.zshrc
 vm setup python git-ssh
 ```
@@ -222,7 +222,7 @@ If you want to edit code on your VM from Windows/macOS/Linux host:
 **Reference**: [VSCODE-REMOTE-SSH.md](./VSCODE-REMOTE-SSH.md)
 
 **Quick setup:**
-1. Run `vm setup git-ssh` (creates SSH config)
+1. Run `vm setup-git-ssh` (creates SSH config)
 2. Install VSCode Remote-SSH extension on host
 3. Connect via Remote Explorer
 4. Edit files remotely!
@@ -431,12 +431,12 @@ vm connect dev-vm
 ### Manual Setup
 ```bash
 # Clone and setup
-git clone https://github.com/YOUR_USERNAME/scripts-bash.git
+git clone https://gitlab.com/kitadeve/scripts-bash.git
 cd scripts-bash
 chmod +x bin/vm core/**/*.sh
 
 # Install shell (do this first!)
-./bin/vm setup shell
+./bin/vm setup-shell
 source ~/.zshrc
 ```
 
@@ -445,8 +445,8 @@ source ~/.zshrc
 sudo vm setup lamp development    # Web dev
 vm setup nodejs                   # JavaScript
 vm setup python                   # Python
-vm setup git-ssh                  # Git + SSH
-vm setup eslint                   # React linting
+vm setup-git-ssh                  # Git + SSH
+vm setup-eslint                   # React linting
 ```
 
 ### Verify
