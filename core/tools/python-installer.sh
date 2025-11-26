@@ -22,7 +22,9 @@ install_python() {
     fi
 
     local sudo_cmd=""
-    [[ ! is_root ]] && sudo_cmd="sudo"
+    if ! is_root; then
+        sudo_cmd="sudo"
+    fi
 
     # Check if Python already installed
     if command_exists python3; then

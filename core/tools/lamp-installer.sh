@@ -34,7 +34,9 @@ install_lamp() {
     fi
 
     local sudo_cmd=""
-    [[ ! is_root ]] && sudo_cmd="sudo"
+    if ! is_root; then
+        sudo_cmd="sudo"
+    fi
 
     # Update package list
     print_info "Updating package list..."
